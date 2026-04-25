@@ -1,0 +1,20 @@
+{
+  "name": "pricepulse",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Social price comparison platform - PricePulse",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "eslint": "^9.19.0",
+    "globals": "^15.14.0",
+    "vitest": "^2.1.8",
+    "jsdom": "^26.0.0"
+  },
+  "keywords": ["price", "deals", "community", "shopping"],
+  "license": "MIT"
+}
