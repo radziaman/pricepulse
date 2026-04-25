@@ -696,12 +696,15 @@ function showNotification(msg) {
 
 function renderCategories() {
     const container = get('categories-bar');
-    if (!container) return;
+    const sidebarContainer = get('categories-sidebar');
     
-    container.innerHTML = CATEGORIES.map(cat => {
+    const html = CATEGORIES.map(cat => {
         const isActive = state.activeCategory === cat.id;
-        return `<div onclick="filterByCategory('${cat.id}')" style="white-space:nowrap; padding:8px 16px; border-radius:20px; background:${isActive ? 'var(--accent-lime)' : 'rgba(255,255,255,0.05)'}; color:${isActive ? '#000' : 'white'}; font-size:0.8rem; font-weight:700; cursor:pointer;">${cat.name}</div>`;
+        return `<div onclick="filterByCategory('${cat.id}')" style="padding:12px 16px; border-radius:15px; background:${isActive ? 'var(--accent-lime)' : 'rgba(255,255,255,0.05)'}; color:${isActive ? '#000' : 'white'}; font-size:0.85rem; font-weight:700; cursor:pointer; text-align:center;">${cat.name}</div>`;
     }).join('');
+    
+    if (container) container.innerHTML = html;
+    if (sidebarContainer) sidebarContainer.innerHTML = html;
 }
 
 // --- 9. LIFECYCLE ---

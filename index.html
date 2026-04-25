@@ -71,10 +71,6 @@
                     <div id="tab-bounties" class="action-chip" style="flex: 1; justify-content: center;" onclick="switchTab('bounties')">BOUNTIES 💰</div>
                 </div>
                 
-                <!-- Categories (between search and feed) -->
-                <div id="categories-bar" style="display:flex; gap:8px; overflow-x:auto; padding: 10px 0; margin: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                </div>
-                
                 <!-- Location Status -->
                 <div id="location-status" style="font-size: 0.75rem; color: var(--text-gray); margin-bottom: 10px;">
                     <i data-lucide="map-pin" size="14"></i> <span id="current-location-text">Location: Detecting...</span>
@@ -90,6 +86,13 @@
         </main>
 
         <aside class="right-sidebar" style="padding: 30px;">
+            <!-- Categories in sidebar -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Categories</h3>
+                <div id="categories-sidebar" style="display: flex; flex-direction: column; gap: 8px;">
+                </div>
+            </div>
+            
             <div class="card" style="margin-bottom: 20px; text-align: center;">
                 <h3 style="margin-bottom: 20px;">Top Spotters 🏆</h3>
                 <div id="leaderboard"></div>
