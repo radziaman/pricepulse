@@ -3,11 +3,22 @@
 // ==========================================
 
 const DATA = [
-    { id: 1, user: "FoodieKing 🍔", name: "The Umami Burger", price: 18.5, loc: "Orchard Road", img: "gourmet_burger_find_1777014996371.png", likes: 42, homePrice: 19.20, lat: 1.3048, lng: 103.8318 },
-    { id: 2, user: "TechWiz 💻", name: "MacBook Pro M3", price: 3299, loc: "City Hall", img: "premium_laptop_find_1777015033134.png", likes: 256, homePrice: 3499, lat: 1.2931, lng: 103.8522 },
-    { id: 3, user: "StyleIcon ⌚", name: "Elite Watch", price: 1250, loc: "Marina Bay", img: "luxury_watch_find_1777015121802.png", likes: 112, homePrice: 1350, lat: 1.2823, lng: 103.8584 },
-    { id: 4, user: "BurgerLover", name: "The Umami Burger", price: 17.5, loc: "Somerset", lat: 1.3000, lng: 103.8380, homePrice: 19.20, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=300" },
-    { id: 5, user: "CheapEats", name: "The Umami Burger", price: 16.0, loc: "Dhoby Ghaut", lat: 1.2990, lng: 103.8450, homePrice: 19.20, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=300" }
+    { id: 1, user: "FoodieKing 🍔", name: "The Umami Burger", price: 18.5, loc: "Orchard Road", category: "food", img: "gourmet_burger_find_1777014996371.png", likes: 42, shares: 15, homePrice: 19.20, lat: 1.3048, lng: 103.8318 },
+    { id: 2, user: "TechWiz 💻", name: "MacBook Pro M3", price: 3299, loc: "City Hall", category: "electronics", img: "premium_laptop_find_1777015033134.png", likes: 256, shares: 89, homePrice: 3499, lat: 1.2931, lng: 103.8522 },
+    { id: 3, user: "StyleIcon ⌚", name: "Elite Watch", price: 1250, loc: "Marina Bay", category: "fashion", img: "luxury_watch_find_1777015121802.png", likes: 112, shares: 34, homePrice: 1350, lat: 1.2823, lng: 103.8584 },
+    { id: 4, user: "BurgerLover", name: "The Umami Burger", price: 17.5, loc: "Somerset", category: "food", lat: 1.3000, lng: 103.8380, homePrice: 19.20, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=300" },
+    { id: 5, user: "CheapEats", name: "The Umami Burger", price: 16.0, loc: "Dhoby Ghaut", category: "food", lat: 1.2990, lng: 103.8450, homePrice: 19.20, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=300" },
+    { id: 6, user: "GadgetGuru", name: "iPhone 15 Pro", price: 1299, loc: "Bugis", category: "electronics", likes: 189, shares: 67, homePrice: 1499, lat: 1.3000, lng: 103.8550, img: "https://images.unsplash.com/photo-1592750475338-f74cc3dbfc52?auto=format&fit=crop&q=80&w=300" },
+    { id: 7, user: "SneakerHead", name: "Nike Air Max", price: 159, loc: "Orchard", category: "fashion", likes: 78, shares: 23, homePrice: 199, lat: 1.3048, lng: 103.8318, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=300" },
+    { id: 8, user: "HomeChef", name: "KitchenAid Mixer", price: 299, loc: "Jurong", category: "home", likes: 45, shares: 12, homePrice: 399, lat: 1.3300, lng: 103.7200, img: "https://images.unsplash.com/photo-1594385208974-2e75ebe8f9b2?auto=format&fit=crop&q=80&w=300" }
+];
+
+const CATEGORIES = [
+    { id: "all", name: "All", icon: "grid" },
+    { id: "food", name: "Food 🍔", icon: "utensils" },
+    { id: "electronics", name: "Tech 💻", icon: "laptop" },
+    { id: "fashion", name: "Fashion ⌚", icon: "shirt" },
+    { id: "home", name: "Home 🏠", icon: "home" }
 ];
 
 const BOUNTIES = [
@@ -33,7 +44,12 @@ let state = {
     user: JSON.parse(localStorage.getItem('pulse_user')) || { name: "Guest Hunter", bio: "Hunting deals...", home: "Singapore" },
     map: null,
     markers: [],
-    hasUnreadNotifs: true
+    hasUnreadNotifs: true,
+    favorites: JSON.parse(localStorage.getItem('favorites')) || [],
+    alerts: JSON.parse(localStorage.getItem('alerts')) || [],
+    searchQuery: "",
+    activeCategory: "all",
+    searchMode: false
 };
 
 const get = (id) => document.getElementById(id);
@@ -53,13 +69,101 @@ function sortFeedByProximity() {
     renderFeed();
 }
 
-// --- 2. MAP ENGINE (LEAFLET) ---
+// --- SEARCH & FILTER ---
+window.searchDeals = (query) => {
+    state.searchQuery = query.toLowerCase();
+    state.searchMode = query.length > 0;
+    renderFeed();
+};
 
-window.initMap = () => {
-    if (state.map) return;
-    state.map = L.map('leaflet-map', { zoomControl: false }).setView([1.3521, 103.8198], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap' }).addTo(state.map);
-    window.updateMapMarkers();
+window.filterByCategory = (cat) => {
+    state.activeCategory = cat;
+    renderFeed();
+};
+
+function getFilteredDeals() {
+    let deals = [...state.finds];
+    
+    // Filter by category
+    if (state.activeCategory !== "all") {
+        deals = deals.filter(d => d.category === state.activeCategory);
+    }
+    
+    // Filter by search
+    if (state.searchQuery) {
+        deals = deals.filter(d => 
+            d.name.toLowerCase().includes(state.searchQuery) ||
+            d.loc.toLowerCase().includes(state.searchQuery) ||
+            d.category?.toLowerCase().includes(state.searchQuery)
+        );
+    }
+    
+    return deals;
+}
+
+// --- FAVORITES ---
+window.toggleFavorite = (id) => {
+    const idx = state.favorites.indexOf(id);
+    if (idx > -1) {
+        state.favorites.splice(idx, 1);
+        showNotification("💔 Removed from favorites");
+    } else {
+        state.favorites.push(id);
+        showNotification("❤️ Added to favorites!");
+    }
+    localStorage.setItem('favorites', JSON.stringify(state.favorites));
+    renderFeed();
+};
+
+window.isFavorite = (id) => state.favorites.includes(id);
+
+window.showFavorites = () => {
+    state.currentTab = 'favorites';
+    get('feed-container').style.display = 'block';
+    get('bounty-container').style.display = 'none';
+    get('tab-deals').style.background = 'transparent';
+    get('tab-deals').style.color = 'white';
+    get('tab-bounties').style.background = 'transparent';
+    get('tab-bounties').style.color = 'white';
+    renderFeed();
+};
+
+// --- DEAL ALERTS ---
+window.createAlert = (itemName) => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    if (state.alerts.includes(itemName)) {
+        showNotification("⚠️ Alert already exists!");
+        return;
+    }
+    state.alerts.push(itemName);
+    localStorage.setItem('alerts', JSON.stringify(state.alerts));
+    showNotification("🔔 Alert created for ${itemName}!");
+};
+
+window.checkAlerts = () => {
+    state.alerts.forEach(itemName => {
+        const deal = state.finds.find(d => d.name === itemName);
+        if (deal && deal.price < deal.homePrice * 0.8) {
+            state.notifications.unshift({
+                id: Date.now(),
+                type: 'alert',
+                text: 'Price Drop! ${itemName} is now at its lowest!',
+                time: 'Just now',
+                icon: 'bell',
+                color: 'var(--accent-lime)'
+            });
+        }
+    });
+    renderNotifications();
+};
+
+// --- REPORT ---
+window.reportDeal = (id) => {
+    const reason = prompt("Why are you reporting this deal? (spam/fake/expired)");
+    if (reason) {
+        showNotification("🚩 Deal reported. Thank you!");
+        // In production, save to Firestore
+    }
 };
 
 window.updateMapMarkers = () => {
@@ -468,14 +572,54 @@ function updateComparisonUI(item) {
 // --- 7. CONTENT RENDERERS (FEED & BOUNTIES) ---
 
 function renderFeed() {
-    const container = get('feed-container'); container.innerHTML = '';
-    const list = state.isLoggedIn ? state.finds : state.finds.slice(0, 3);
+    const container = get('feed-container'); 
+    container.innerHTML = '';
+    
+    // Get filtered deals
+    let list = getFilteredDeals();
+    
+    // Show favorites only
+    if (state.currentTab === 'favorites') {
+        list = list.filter(d => state.favorites.includes(d.id));
+    }
+    
+    list = state.isLoggedIn ? list : list.slice(0, 3);
+    
     list.forEach(item => {
-        const card = document.createElement('div'); card.className = 'card';
+        const card = document.createElement('div'); 
+        card.className = 'card';
         const uName = item.user === "You 🌟" ? state.user.name + " (You)" : item.user;
-        card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><div style="display:flex; align-items:center; gap:12px;"><div style="width:40px; height:40px; border-radius:12px; background:var(--accent-lime); color:#000; display:flex; align-items:center; justify-content:center; font-weight:900;">${uName[0]}</div><span style="font-weight:700;">${uName}</span></div></div><div class="price-pill" onclick="window.showComparison(${item.id})">$${item.price.toLocaleString()}</div><h2 style="margin-bottom:15px; font-size:1.8rem;" onclick="window.showComparison(${item.id})">${item.name}</h2><img src="${item.img}" class="card-image" onclick="window.showComparison(${item.id})"><div class="social-bar"><div class="action-chip" style="background:var(--accent-lime); color:#000;" onclick="window.showComparison(${item.id})">RADAR SCAN <i data-lucide="crosshair" size="18"></i></div><div class="action-chip" onclick="window.sharePulse()"><i data-lucide="share-2" size="18"></i></div></div>`;
+        const isFav = window.isFavorite(item.id);
+        const shares = item.shares || 0;
+        
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:var(--accent-lime); color:#000; display:flex; align-items:center; justify-content:center; font-weight:900;">${uName[0]}</div>
+                    <span style="font-weight:700;">${uName}</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <div onclick="window.toggleFavorite(${item.id})" style="cursor:pointer; font-size:1.5rem;">${isFav ? '❤️' : '🤍'}</div>
+                    <div onclick="window.reportDeal(${item.id})" style="cursor:pointer; color:var(--text-gray);">🚩</div>
+                </div>
+            </div>
+            <div class="price-pill" onclick="window.showComparison(${item.id})">$${item.price.toLocaleString()}</div>
+            <h2 style="margin-bottom:10px; font-size:1.6rem;" onclick="window.showComparison(${item.id})">${item.name}</h2>
+            <p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:15px;">📍 ${item.loc}</p>
+            <img src="${item.img}" class="card-image" onclick="window.showComparison(${item.id})">
+            <div style="display:flex; gap:15px; margin:15px 0; font-size:0.8rem; color:var(--text-gray);">
+                <span>❤️ ${item.likes}</span>
+                <span>🔄 ${shares}</span>
+                <span onclick="window.createAlert('${item.name}')" style="cursor:pointer; color:var(--accent-lime);">🔔 Alert</span>
+            </div>
+            <div class="social-bar">
+                <div class="action-chip" style="background:var(--accent-lime); color:#000;" onclick="window.showComparison(${item.id})">RADAR SCAN <i data-lucide="crosshair" size="18"></i></div>
+                <div class="action-chip" onclick="window.sharePulse()"><i data-lucide="share-2" size="18"></i></div>
+            </div>
+        `;
         container.appendChild(card);
     });
+    
     if (!state.isLoggedIn && state.finds.length > 3) {
         const cta = document.createElement('div'); cta.className = 'card'; cta.style = 'text-align:center; background:#1a1a24; border: 2px dashed var(--accent-lime); padding: 40px 20px;';
         cta.innerHTML = `<i data-lucide="lock" size="32" style="color:var(--accent-lime); margin-bottom:15px;"></i><h3 style="margin-bottom:10px;">Unlock ${state.finds.length-3} more deals!</h3><button class="btn-fun" onclick="window.openAuth()">Sign Up for Free</button>`;
@@ -550,11 +694,22 @@ function showNotification(msg) {
     n.innerText = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
 }
 
+function renderCategories() {
+    const container = get('categories-bar');
+    if (!container) return;
+    
+    container.innerHTML = CATEGORIES.map(cat => {
+        const isActive = state.activeCategory === cat.id;
+        return `<div onclick="filterByCategory('${cat.id}')" style="white-space:nowrap; padding:8px 16px; border-radius:20px; background:${isActive ? 'var(--accent-lime)' : 'rgba(255,255,255,0.05)'}; color:${isActive ? '#000' : 'white'}; font-size:0.8rem; font-weight:700; cursor:pointer;">${cat.name}</div>`;
+    }).join('');
+}
+
 // --- 9. LIFECYCLE ---
 
 document.addEventListener('DOMContentLoaded', () => { 
     updateIdentityUI();
     renderFeed(); 
+    renderCategories();
     renderLeaderboard();
     lucide.createIcons(); 
     if (navigator.geolocation) {
