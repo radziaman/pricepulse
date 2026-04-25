@@ -22,9 +22,9 @@
         <aside class="sidebar">
             <div class="nav-pill active" onclick="switchView('feed')"><i data-lucide="layout-grid" size="28"></i></div>
             <div class="nav-pill" onclick="switchView('map')"><i data-lucide="map" size="28"></i></div>
-            <div class="nav-pill" onclick="openUpload()" style="background: var(--accent-lime); color: #000;"><i data-lucide="plus" size="32"></i></div>
+            <div class="nav-pill btn-plus" onclick="openUpload()"><i data-lucide="plus" size="32"></i></div>
             <div class="nav-pill" onclick="getAIRecs()"><i data-lucide="sparkles" size="28"></i></div>
-            <div class="nav-pill" onclick="toggleDrawer()"><i data-lucide="smile" size="28"></i></div>
+            <div class="nav-pill" id="nav-smile" onclick="toggleDrawer()"><i data-lucide="smile" size="28"></i></div>
         </aside>
 
         <main class="main-feed">
@@ -46,7 +46,7 @@
                         <div id="notif-dot" style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: var(--accent-pink); border-radius: 50%; box-shadow: 0 0 10px var(--accent-pink);"></div>
                     </div>
 
-                    <div onclick="toggleDrawer()" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                    <div onclick="toggleDrawer()" id="user-avatar-btn" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                         <div style="text-align: right; display: none;" id="user-identity-text">
                             <p style="font-size: 0.6rem; color: var(--accent-lime); font-weight: 800;">LOGGED IN</p>
                             <p id="user-display-name" style="font-weight: 800; font-size: 0.9rem;">Pulse Hunter</p>
@@ -113,7 +113,7 @@
     <nav class="mobile-nav">
         <div class="nav-pill active" onclick="switchView('feed')"><i data-lucide="layout-grid"></i></div>
         <div class="nav-pill" onclick="switchView('map')"><i data-lucide="map"></i></div>
-        <div class="nav-pill" onclick="openUpload()" style="background: var(--accent-lime); color: #000; transform: translateY(-10px);"><i data-lucide="plus"></i></div>
+        <div class="nav-pill btn-plus" onclick="openUpload()"><i data-lucide="plus"></i></div>
         <div class="nav-pill" onclick="getAIRecs()"><i data-lucide="sparkles"></i></div>
         <div class="nav-pill" onclick="toggleDrawer()"><i data-lucide="smile"></i></div>
     </nav>
