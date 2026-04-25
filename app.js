@@ -98,6 +98,78 @@ window.mockLogin = (method) => {
     localStorage.setItem('pulse_auth', 'true');
     localStorage.setItem('pulse_user', JSON.stringify(state.user));
     updateIdentityUI(); window.closeModals(); renderFeed();
+    showNotification("✅ Logged in!");
+};
+
+window.loginWithGoogle = () => {
+    showNotification("🔄 Connecting to Google...");
+    setTimeout(() => {
+        state.isLoggedIn = true;
+        state.user = { name: "Google User", bio: "Price Hunter", home: "Singapore", method: 'google', photo: '' };
+        localStorage.setItem('pulse_auth', 'true');
+        localStorage.setItem('pulse_user', JSON.stringify(state.user));
+        updateIdentityUI(); window.closeModals(); renderFeed();
+        showNotification("✅ Logged in with Google!");
+    }, 1500);
+};
+
+window.loginWithApple = () => {
+    showNotification("🔄 Connecting to Apple...");
+    setTimeout(() => {
+        state.isLoggedIn = true;
+        state.user = { name: "Apple User", bio: "Price Hunter", home: "Singapore", method: 'apple', photo: '' };
+        localStorage.setItem('pulse_auth', 'true');
+        localStorage.setItem('pulse_user', JSON.stringify(state.user));
+        updateIdentityUI(); window.closeModals(); renderFeed();
+        showNotification("✅ Logged in with Apple!");
+    }, 1500);
+};
+
+window.loginWithEmail = () => {
+    const email = get('auth-email')?.value;
+    const password = get('auth-password')?.value;
+    if (!email || !password) {
+        showNotification("Please enter email and password");
+        return;
+    }
+    if (password.length < 6) {
+        showNotification("Password must be at least 6 characters");
+        return;
+    }
+    state.isLoggedIn = true;
+    state.user = { name: email.split('@')[0], email, bio: "New Hunter", home: "Singapore", method: 'email' };
+    localStorage.setItem('pulse_auth', 'true');
+    localStorage.setItem('pulse_user', JSON.stringify(state.user));
+    updateIdentityUI(); window.closeModals(); renderFeed();
+    showNotification("✅ Account created!");
+};
+
+window.linkTwitter = () => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    showNotification("🐦 Opening Twitter linking...");
+    setTimeout(() => showNotification("✅ Twitter linked!"), 2000);
+};
+
+window.linkInstagram = () => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    showNotification("📸 Opening Instagram linking...");
+    setTimeout(() => showNotification("✅ Instagram linked!"), 2000);
+};
+
+window.shareToTwitter = () => {
+    const item = state.currentSelectedItem;
+    if (!item) { showNotification("Select an item first"); return; }
+    const savings = item.homePrice - item.price;
+    const text = encodeURIComponent(`🚀 Found ${item.name} for $${item.price} at ${item.loc}! Save $${savings.toFixed(2)}! #PricePulse`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+};
+
+window.shareToWhatsApp = () => {
+    const item = state.currentSelectedItem;
+    if (!item) { showNotification("Select an item first"); return; }
+    const savings = item.homePrice - item.price;
+    const text = encodeURIComponent(`🚀 Found ${item.name} for $${item.price} at ${item.loc}! Save $${savings.toFixed(2)}! #PricePulse`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
 };
 
 window.saveProfile = () => {
@@ -254,10 +326,12 @@ window.toggleDrawer = () => {
         window.openAuth(); 
         return; 
     }
-    drawer.style.display = drawer.style.display === 'flex' ? 'none' : 'flex';
+    const isOpen = drawer.style.display === 'flex';
+    drawer.style.display = isOpen ? 'none' : 'flex';
 };
 
 window.closeProfileDrawer = () => { get('profile-drawer').style.display = 'none'; };
+window.openProfileDrawer = () => { get('profile-drawer').style.display = 'flex'; };
 window.openLikes = () => showNotification("Likes coming soon! ❤️");
 
 window.renderLeaderboard = () => {
