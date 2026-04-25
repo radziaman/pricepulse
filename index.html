@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDK -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -256,6 +261,25 @@
             
             <p onclick="resendVerificationCode()" style="margin-top: 20px; color: var(--text-gray); cursor: pointer; font-size: 0.8rem;">Didn't receive it? Resend code</p>
             <p onclick="closeModals()" style="margin-top: 15px; color: var(--text-gray); cursor: pointer; font-size: 0.8rem;">Cancel</p>
+        </div>
+    </div>
+
+    <!-- Firebase Verification Prompt Modal -->
+    <div id="verification-prompt-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 400px;">
+            <div style="margin-bottom: 20px;">
+                <i data-lucide="mail-warning" size="48" style="color: var(--accent-lime); margin-bottom: 20px;"></i>
+                <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Verify Your Email</h2>
+                <p style="color: var(--text-gray); font-size: 0.9rem;">Please check your email and click the verification link to activate your account.</p>
+            </div>
+            
+            <button class="btn-fun" onclick="sendVerificationEmailFirebase()">Resend Email</button>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn-fun" style="background: transparent; color: white; border: 1px solid white;" onclick="checkEmailVerificationFirebase()">I've Verified - Check Now</button>
+            </div>
+            
+            <p onclick="closeModals()" style="margin-top: 20px; color: var(--text-gray); cursor: pointer; font-size: 0.8rem;">Close</p>
         </div>
     </div>
 

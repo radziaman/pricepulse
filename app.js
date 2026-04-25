@@ -101,28 +101,70 @@ window.mockLogin = (method) => {
     showNotification("✅ Logged in!");
 };
 
+// Firebase login functions (with fallback to mock)
 window.loginWithGoogle = () => {
-    showNotification("🔄 Connecting to Google...");
-    setTimeout(() => {
-        state.isLoggedIn = true;
-        state.user = { name: "Google User", bio: "Price Hunter", home: "Singapore", method: 'google', photo: '' };
-        localStorage.setItem('pulse_auth', 'true');
-        localStorage.setItem('pulse_user', JSON.stringify(state.user));
-        updateIdentityUI(); window.closeModals(); renderFeed();
-        showNotification("✅ Logged in with Google!");
-    }, 1500);
+    if (typeof loginWithGoogleFirebase === 'function') {
+        loginWithGoogleFirebase();
+    } else {
+        // Fallback to mock
+        showNotification("🔄 Connecting to Google...");
+        setTimeout(() => {
+            state.isLoggedIn = true;
+            state.user = { name: "Google User", bio: "Price Hunter", home: "Singapore", method: 'google', photo: '' };
+            localStorage.setItem('pulse_auth', 'true');
+            localStorage.setItem('pulse_user', JSON.stringify(state.user));
+            updateIdentityUI(); window.closeModals(); renderFeed();
+            showNotification("✅ Logged in with Google (Demo)!");
+        }, 1500);
+    }
 };
 
 window.loginWithApple = () => {
-    showNotification("🔄 Connecting to Apple...");
-    setTimeout(() => {
-        state.isLoggedIn = true;
-        state.user = { name: "Apple User", bio: "Price Hunter", home: "Singapore", method: 'apple', photo: '' };
-        localStorage.setItem('pulse_auth', 'true');
+    if (typeof loginWithAppleFirebase === 'function') {
+        loginWithAppleFirebase();
+    } else {
+        // Fallback to mock
+        showNotification("🔄 Connecting to Apple...");
+        setTimeout(() => {
+            state.isLoggedIn = true;
+            state.user = { name: "Apple User", bio: "Price Hunter", home: "Singapore", method: 'apple', photo: '' };
+            localStorage.setItem('pulse_auth', 'true');
+            localStorage.setItem('pulse_user', JSON.stringify(state.user));
+            updateIdentityUI(); window.closeModals(); renderFeed();
+            showNotification("✅ Logged in with Apple (Demo)!");
+        }, 1500);
+    }
+};
+
+window.loginWithEmailWrapper = () => {
+    if (typeof loginWithEmailFirebase === 'function') {
+        loginWithEmailFirebase();
+    } else {
+        // Use demo email verification
+        window.loginWithEmail();
+    }
+};
+
+window.logout = () => {
+    if (typeof logoutFirebase === 'function') {
+        logoutFirebase();
+    } else {
+        localStorage.clear();
+        location.reload();
+    }
+};
+
+window.saveProfile = () => {
+    if (typeof saveProfileToFirestore === 'function') {
+        saveProfileToFirestore();
+    } else {
+        // Demo fallback
+        state.user.name = get('profile-name').value;
+        state.user.bio = get('profile-bio').value;
+        state.user.home = get('profile-home').value;
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
-        updateIdentityUI(); window.closeModals(); renderFeed();
-        showNotification("✅ Logged in with Apple!");
-    }, 1500);
+        updateIdentityUI(); showNotification("✅ Identity Updated!"); renderFeed();
+    }
 };
 
 window.requestEmailVerification = () => {
