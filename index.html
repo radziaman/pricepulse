@@ -20,7 +20,7 @@
             <div class="nav-pill active" onclick="switchView('feed')"><i data-lucide="layout-grid" size="28"></i></div>
             <div class="nav-pill" onclick="switchView('map')"><i data-lucide="map" size="28"></i></div>
             <div class="nav-pill" onclick="openUpload()" style="background: var(--accent-lime); color: #000;"><i data-lucide="plus" size="32"></i></div>
-            <div class="nav-pill"><i data-lucide="heart" size="28"></i></div>
+            <div class="nav-pill" onclick="getAIRecs()"><i data-lucide="sparkles" size="28"></i></div>
             <div class="nav-pill" onclick="toggleDrawer()"><i data-lucide="smile" size="28"></i></div>
         </aside>
 
@@ -75,7 +75,7 @@
         <div class="nav-pill active" onclick="switchView('feed')"><i data-lucide="layout-grid"></i></div>
         <div class="nav-pill" onclick="switchView('map')"><i data-lucide="map"></i></div>
         <div class="nav-pill" onclick="openUpload()" style="background: var(--accent-lime); color: #000; transform: translateY(-10px);"><i data-lucide="plus"></i></div>
-        <div class="nav-pill"><i data-lucide="heart"></i></div>
+        <div class="nav-pill" onclick="getAIRecs()"><i data-lucide="sparkles"></i></div>
         <div class="nav-pill" onclick="toggleDrawer()"><i data-lucide="smile"></i></div>
     </nav>
 
@@ -283,6 +283,35 @@
         </div>
     </div>
 
+    <!-- AI Analysis Modal -->
+    <div id="ai-analysis-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 500px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i data-lucide="brain" size="48" style="color: var(--accent-lime); margin-bottom: 20px;"></i>
+                <h2 style="font-size: 1.8rem;">AI Analysis 🧠</h2>
+            </div>
+            <div id="ai-analysis-result" class="card" style="text-align: left; min-height: 150px; padding: 20px;">
+                Loading analysis...
+            </div>
+            <button class="btn-fun" onclick="closeModals()" style="margin-top: 20px;">Done</button>
+        </div>
+    </div>
+
+    <!-- AI Recommendations Modal -->
+    <div id="ai-recs-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 500px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i data-lucide="sparkles" size="48" style="color: var(--accent-lime); margin-bottom: 20px;"></i>
+                <h2 style="font-size: 1.8rem;">AI Picks ✨</h2>
+            </div>
+            <div id="ai-recs-result" class="card" style="text-align: left; min-height: 200px; padding: 20px;">
+                Finding best deals...
+            </div>
+            <button class="btn-fun" onclick="closeModals()" style="margin-top: 20px;">Done</button>
+        </div>
+    </div>
+
+    <script src="gemini-service.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

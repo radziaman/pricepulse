@@ -244,6 +244,52 @@ window.resendVerificationCode = () => {
     showNotification("📧 New code sent!");
 };
 
+// --- FIRESTORE: SAVE/LOAD DEALS ---
+window.saveDealToFirestore = async (deal) => {
+    if (!db || !firebaseAuth?.currentUser) {
+        // Demo fallback - save locally
+        state.finds.unshift(deal);
+        renderFeed();
+        showNotification("✅ Deal saved!");
+        return;
+    }
+    try {
+        await db.collection('deals').add({
+            ...deal,
+            userId: firebaseAuth.currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showNotification("✅ Deal saved to cloud!");
+    } catch(e) {
+        console.error('Save deal error:', e);
+        showNotification("Saved locally");
+    }
+};
+
+window.loadDealsFromFirestore = async () => {
+    if (!db) return; // Will use local data
+    try {
+        const snapshot = await db.collection('deals')
+            .orderBy('createdAt', 'desc')
+            .limit(50)
+            .get();
+        
+        if (!snapshot.empty) {
+            const cloudDeals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Merge with local deals (cloud first)
+            state.finds = [...cloudDeals, ...state.finds];
+            renderFeed();
+        }
+    } catch(e) {
+        console.log('Using local deals');
+    }
+}
+
+// --- AI INITIALIZATION ---
+if (typeof window.initializeGemini === 'function') {
+    window.initializeGemini();
+}
+
 window.loginWithEmail = () => {
     const email = get('auth-email')?.value;
     const password = get('auth-password')?.value;
@@ -300,6 +346,35 @@ window.shareToWhatsApp = () => {
     const savings = item.homePrice - item.price;
     const text = encodeURIComponent(`🚀 Found ${item.name} for $${item.price} at ${item.loc}! Save $${savings.toFixed(2)}! #PricePulse`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
+};
+
+// --- AI FEATURES ---
+window.analyzeWithAI = async () => {
+    if (!state.currentSelectedItem) {
+        showNotification("Select a deal first to analyze");
+        return;
+    }
+    const item = state.currentSelectedItem;
+    showNotification("🧠 AI is analyzing...");
+    
+    try {
+        const analysis = await window.analyzeDealWithAI(item.name, item.price, item.loc);
+        get('ai-analysis-result').innerText = analysis || "Analysis complete!";
+        get('ai-analysis-modal').style.display = 'flex';
+    } catch(e) {
+        showNotification("AI analysis unavailable");
+    }
+};
+
+window.getAIRecs = async () => {
+    showNotification("🧠 Getting recommendations...");
+    try {
+        const recs = await window.getAIRecommendations(state.user);
+        get('ai-recs-result').innerText = recs || "Check back soon!";
+        get('ai-recs-modal').style.display = 'flex';
+    } catch(e) {
+        showNotification("AI recommendations unavailable");
+    }
 };
 
 window.saveProfile = () => {
