@@ -55,7 +55,44 @@ let state = {
 
 const get = (id) => document.getElementById(id);
 
-// --- 1. GEOLOCATION & DISTANCE ---
+// --- 1. MAP INITIALIZATION ---
+
+window.initMap = () => {
+    const mapContainer = get('leaflet-map');
+    if (!mapContainer || state.map) return;
+    
+    // Default: Singapore
+    const defaultLat = 1.3521;
+    const defaultLng = 103.8198;
+    
+    const userLat = state.userCoords?.lat || defaultLat;
+    const userLng = state.userCoords?.lng || defaultLng;
+    
+    state.map = L.map('leaflet-map', { zoomControl: false }).setView([userLat, userLng], 14);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    }).addTo(state.map);
+    
+    // User location marker (blue pulsing)
+    const userIcon = L.divIcon({
+        className: 'user-marker',
+        html: '<div style="width:20px;height:20px;background:#3b82f6;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(59,130,246,0.8);"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    
+    L.marker([userLat, userLng], { icon: userIcon, draggable: true })
+        .addTo(state.map)
+        .bindPopup(`<div style="text-align:center;"><b style="color:#3b82f6;">📍 You are here</b><br><span style="font-size:0.7rem;">${userLat.toFixed(4)}, ${userLng.toFixed(4)}</span></div>`)
+        .openPopup();
+    
+    // Add deal markers
+    window.updateMapMarkers();
+};
+
+// --- 2. GEOLOCATION & DISTANCE ---
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -528,7 +565,26 @@ window.switchView = (v) => {
     if (isMap) { header.style.opacity = '0'; setTimeout(() => header.style.display = 'none', 300); }
     else { header.style.display = 'block'; setTimeout(() => header.style.opacity = '1', 10); }
     document.querySelectorAll('.nav-pill').forEach(p => { const oc = p.getAttribute('onclick'); if (oc && oc.includes(`'${v}'`)) p.classList.add('active'); else p.classList.remove('active'); });
-    if (isMap) { window.initMap(); setTimeout(() => state.map.invalidateSize(), 100); }
+    
+    // Initialize map
+    if (isMap) { 
+        window.initMap(); 
+        setTimeout(() => {
+            if (state.map) {
+                state.map.invalidateSize();
+                state.map.setView([
+                    state.userCoords?.lat || 1.3521,
+                    state.userCoords?.lng || 103.8198
+                ], 14);
+            }
+        }, 300); 
+    } else {
+        // Return to feed - show feed container
+        const feedContainer = get('feed-container');
+        const bountyContainer = get('bounty-container');
+        if (feedContainer) feedContainer.style.display = 'block';
+        if (bountyContainer) bountyContainer.style.display = 'none';
+    }
 };
 
 window.switchTab = (tab) => {
@@ -745,7 +801,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 
                 if (get('current-location-text')) {
-                    get('current-location-text').innerText = "📍 Location enabled";
+                    const lat = position.coords.latitude.toFixed(4);
+                    const lng = position.coords.longitude.toFixed(4);
+                    get('current-location-text').innerHTML = `📍 ${lat}, ${lng}`;
                 }
                 
                 // Sort deals by proximity
