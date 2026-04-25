@@ -695,17 +695,31 @@ function showNotification(msg) {
     n.innerText = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
 }
 
+// Render categories in sidebar
 function renderCategories() {
-    const container = get('categories-bar');
-    const sidebarContainer = get('categories-sidebar');
+    console.log("Rendering categories...");
     
-    const html = CATEGORIES.map(cat => {
+    // Categories data
+    const categories = [
+        { id: "all", name: "All Deals" },
+        { id: "food", name: "Food 🍔" },
+        { id: "electronics", name: "Tech 💻" },
+        { id: "fashion", name: "Fashion ⌚" },
+        { id: "home", name: "Home 🏠" }
+    ];
+    
+    const container = document.getElementById('categories-sidebar');
+    if (!container) {
+        console.log("categories-sidebar not found");
+        return;
+    }
+    
+    container.innerHTML = categories.map(cat => {
         const isActive = state.activeCategory === cat.id;
         return `<div onclick="filterByCategory('${cat.id}')" style="padding:12px 16px; border-radius:15px; background:${isActive ? 'var(--accent-lime)' : 'rgba(255,255,255,0.05)'}; color:${isActive ? '#000' : 'white'}; font-size:0.85rem; font-weight:700; cursor:pointer; text-align:center;">${cat.name}</div>`;
     }).join('');
     
-    if (container) container.innerHTML = html;
-    if (sidebarContainer) sidebarContainer.innerHTML = html;
+    console.log("Categories rendered:", categories.length);
 }
 
 // --- 9. LIFECYCLE ---
