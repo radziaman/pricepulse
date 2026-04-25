@@ -245,9 +245,17 @@ window.sharePulse = () => {
     get('share-text').innerText = text; get('share-modal').style.display = 'flex';
 };
 
+window.openUpload = () => get('upload-modal').style.display = 'flex';
 window.closeModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
 window.openAuth = () => get('auth-modal').style.display = 'flex';
 window.toggleDrawer = () => { if(!state.isLoggedIn) { window.openAuth(); return; } get('profile-drawer').style.display = 'flex'; };
+window.openLikes = () => showNotification("Likes coming soon! ❤️");
+
+window.renderLeaderboard = () => {
+    const lb = get('leaderboard'); if(!lb) return;
+    const top = [...state.finds].sort((a,b) => b.likes - a.likes).slice(0, 3);
+    lb.innerHTML = top.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${i+1}. @${u.user}</span><span style="color:var(--accent-lime); font-weight:900;">${u.likes} ❤️</span></div>`).join('');
+};
 
 function showNotification(msg) {
     const n = document.createElement('div'); n.className = 'card'; n.style = 'position:fixed; bottom:120px; left:50%; transform:translateX(-50%); padding:1rem 2rem; border-radius:50px; z-index:9000; background:var(--accent-lime); color:#000; font-weight:900; box-shadow:0 10px 30px rgba(0,0,0,0.5);';
