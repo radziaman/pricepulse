@@ -70,6 +70,19 @@ body::before {
     grid-template-columns: minmax(50px, 100px) 1fr minmax(250px, 380px);
     height: 100vh;
     height: 100dvh;
+    overflow: hidden;
+}
+
+.main-feed {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    padding: var(--space-lg);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
 }
 
 /* --- Fluid Card --- */
@@ -122,22 +135,40 @@ body::before {
 
 /* --- Bouncy Feed --- */
 .main-feed {
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: none;
     padding: var(--space-lg);
+    position: relative;
+    z-index: 1;
 }
 .main-feed::-webkit-scrollbar { display: none; }
+
+#feed-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    width: 100%;
+}
+
+#bounty-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    width: 100%;
+}
 
 .card {
     background: var(--card-bg);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
-    margin-bottom: var(--space-lg);
     transition: transform 0.4s var(--spring-easing);
     cursor: pointer;
     border: 1px solid rgba(255,255,255,0.03);
+    width: 100%;
 }
 .card:hover { transform: scale(1.02); background: #1e1e2d; }
+.card:active { transform: scale(0.98); }
 
 .price-pill {
     background: var(--accent-lime);

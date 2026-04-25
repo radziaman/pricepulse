@@ -588,12 +588,23 @@ window.clearNotifs = () => { state.notifications = []; renderNotifications(); sh
 
 window.switchView = (v) => {
     const isMap = v === 'map';
-    get('map-view').style.display = isMap ? 'block' : 'none';
-    get('feed-container').style.display = !isMap && state.currentTab === 'deals' ? 'block' : 'none';
-    get('bounty-container').style.display = !isMap && state.currentTab === 'bounties' ? 'block' : 'none';
+    const feedContainer = get('feed-container');
+    const bountyContainer = get('bounty-container');
+    const mapView = get('map-view');
+    
+    // Toggle visibility
+    if (mapView) mapView.style.display = isMap ? 'flex' : 'none';
+    if (feedContainer) feedContainer.style.display = !isMap && state.currentTab === 'deals' ? 'flex' : 'none';
+    if (bountyContainer) bountyContainer.style.display = !isMap && state.currentTab === 'bounties' ? 'flex' : 'none';
+    
     const header = document.querySelector('header');
-    if (isMap) { header.style.opacity = '0'; setTimeout(() => header.style.display = 'none', 300); }
-    else { header.style.display = 'block'; setTimeout(() => header.style.opacity = '1', 10); }
+    if (isMap) { 
+        header.style.opacity = '0'; 
+        setTimeout(() => header.style.display = 'none', 300); 
+    } else { 
+        header.style.display = 'block'; 
+        setTimeout(() => header.style.opacity = '1', 10); 
+    }
     document.querySelectorAll('.nav-pill').forEach(p => { const oc = p.getAttribute('onclick'); if (oc && oc.includes(`'${v}'`)) p.classList.add('active'); else p.classList.remove('active'); });
     
     // Initialize map
@@ -608,20 +619,16 @@ window.switchView = (v) => {
                 ], 14);
             }
         }, 300); 
-    } else {
-        // Return to feed - show feed container
-        const feedContainer = get('feed-container');
-        const bountyContainer = get('bounty-container');
-        if (feedContainer) feedContainer.style.display = 'block';
-        if (bountyContainer) bountyContainer.style.display = 'none';
     }
 };
 
 window.switchTab = (tab) => {
     if (!state.isLoggedIn && tab === 'bounties') { window.openAuth(); return; }
     state.currentTab = tab;
-    get('feed-container').style.display = tab === 'deals' ? 'block' : 'none';
-    get('bounty-container').style.display = tab === 'bounties' ? 'block' : 'none';
+    const feedContainer = get('feed-container');
+    const bountyContainer = get('bounty-container');
+    if (feedContainer) feedContainer.style.display = tab === 'deals' ? 'flex' : 'none';
+    if (bountyContainer) bountyContainer.style.display = tab === 'bounties' ? 'flex' : 'none';
     const dBtn = get('tab-deals'); const bBtn = get('tab-bounties');
     if (tab === 'deals') { dBtn.style.background = 'var(--accent-lime)'; dBtn.style.color = '#000'; bBtn.style.background = 'transparent'; bBtn.style.color = 'white'; renderFeed(); }
     else { bBtn.style.background = 'var(--accent-lime)'; bBtn.style.color = '#000'; dBtn.style.background = 'transparent'; dBtn.style.color = 'white'; renderBounties(); }
