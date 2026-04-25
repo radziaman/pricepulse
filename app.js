@@ -267,6 +267,7 @@ function showNotification(msg) {
 document.addEventListener('DOMContentLoaded', () => { 
     updateIdentityUI();
     renderFeed(); 
+    renderLeaderboard();
     lucide.createIcons(); 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(p => {
