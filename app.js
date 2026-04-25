@@ -248,7 +248,16 @@ window.sharePulse = () => {
 window.openUpload = () => get('upload-modal').style.display = 'flex';
 window.closeModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
 window.openAuth = () => get('auth-modal').style.display = 'flex';
-window.toggleDrawer = () => { if(!state.isLoggedIn) { window.openAuth(); return; } get('profile-drawer').style.display = 'flex'; };
+window.toggleDrawer = () => { 
+    const drawer = get('profile-drawer');
+    if (!state.isLoggedIn) { 
+        window.openAuth(); 
+        return; 
+    }
+    drawer.style.display = drawer.style.display === 'flex' ? 'none' : 'flex';
+};
+
+window.closeProfileDrawer = () => { get('profile-drawer').style.display = 'none'; };
 window.openLikes = () => showNotification("Likes coming soon! ❤️");
 
 window.renderLeaderboard = () => {
