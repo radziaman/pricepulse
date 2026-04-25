@@ -238,6 +238,27 @@
         </div>
     </div>
 
+    <!-- Email Verification Modal -->
+    <div id="verification-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 400px;">
+            <div style="margin-bottom: 20px;">
+                <i data-lucide="mail-check" size="48" style="color: var(--accent-lime); margin-bottom: 20px;"></i>
+                <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Verify Email</h2>
+                <p style="color: var(--text-gray); font-size: 0.9rem;">We've sent a verification code to:</p>
+                <p id="verification-email-display" style="color: var(--accent-lime); font-weight: 700; margin: 10px 0;"></p>
+            </div>
+            
+            <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6" style="text-align: center; letter-spacing: 8px; font-size: 1.5rem;">
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-fun" onclick="verifyEmailCode()">Verify Code</button>
+            </div>
+            
+            <p onclick="resendVerificationCode()" style="margin-top: 20px; color: var(--text-gray); cursor: pointer; font-size: 0.8rem;">Didn't receive it? Resend code</p>
+            <p onclick="closeModals()" style="margin-top: 15px; color: var(--text-gray); cursor: pointer; font-size: 0.8rem;">Cancel</p>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

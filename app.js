@@ -125,9 +125,87 @@ window.loginWithApple = () => {
     }, 1500);
 };
 
+window.requestEmailVerification = () => {
+    const email = get('auth-email')?.value;
+    if (!email) {
+        showNotification("Please enter your email first");
+        return;
+    }
+    if (!email.includes('@') || !email.includes('.')) {
+        showNotification("Please enter a valid email");
+        return;
+    }
+    
+    // Store pending registration
+    const password = get('auth-password')?.value;
+    if (!password || password.length < 6) {
+        showNotification("Password must be at least 6 characters");
+        return;
+    }
+    
+    // Generate verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    state.pendingRegistration = { email, password, verificationCode };
+    localStorage.setItem('pending_verification', verificationCode);
+    
+    // Show verification modal
+    get('verification-modal').style.display = 'flex';
+    get('verification-email-display').innerText = email;
+    showNotification("📧 Verification code sent!");
+    
+    // Simulate sending email (in production, use backend service)
+    console.log("Verification code:", verificationCode);
+    showNotification(`📧 Code sent to ${email.replace(/.{3}/, '***')}`);
+};
+
+window.verifyEmailCode = () => {
+    const inputCode = get('verification-code')?.value;
+    const pending = state.pendingRegistration;
+    
+    if (!pending) {
+        showNotification("No pending verification. Please register again.");
+        return;
+    }
+    
+    if (inputCode !== pending.verificationCode) {
+        showNotification("❌ Invalid verification code");
+        return;
+    }
+    
+    // Complete registration
+    state.isLoggedIn = true;
+    state.user = { 
+        name: pending.email.split('@')[0], 
+        email: pending.email, 
+        bio: "New Hunter", 
+        home: "Singapore", 
+        method: 'email',
+        emailVerified: true 
+    };
+    localStorage.setItem('pulse_auth', 'true');
+    localStorage.setItem('pulse_user', JSON.stringify(state.user));
+    delete state.pendingRegistration;
+    localStorage.removeItem('pending_verification');
+    
+    updateIdentityUI(); 
+    closeModals(); 
+    renderFeed();
+    showNotification("✅ Email verified! Account created!");
+};
+
+window.resendVerificationCode = () => {
+    if (!state.pendingRegistration) return;
+    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+    state.pendingRegistration.verificationCode = newCode;
+    localStorage.setItem('pending_verification', newCode);
+    console.log("New verification code:", newCode);
+    showNotification("📧 New code sent!");
+};
+
 window.loginWithEmail = () => {
     const email = get('auth-email')?.value;
     const password = get('auth-password')?.value;
+    
     if (!email || !password) {
         showNotification("Please enter email and password");
         return;
@@ -136,12 +214,22 @@ window.loginWithEmail = () => {
         showNotification("Password must be at least 6 characters");
         return;
     }
-    state.isLoggedIn = true;
-    state.user = { name: email.split('@')[0], email, bio: "New Hunter", home: "Singapore", method: 'email' };
-    localStorage.setItem('pulse_auth', 'true');
-    localStorage.setItem('pulse_user', JSON.stringify(state.user));
-    updateIdentityUI(); window.closeModals(); renderFeed();
-    showNotification("✅ Account created!");
+    
+    // Check if already verified before
+    const savedUser = localStorage.getItem('pulse_user');
+    if (savedUser) {
+        const user = JSON.parse(savedUser);
+        if (user.email === email && user.emailVerified) {
+            state.isLoggedIn = true;
+            state.user = user;
+            updateIdentityUI(); window.closeModals(); renderFeed();
+            showNotification("✅ Logged in!");
+            return;
+        }
+    }
+    
+    // Request verification first
+    window.requestEmailVerification();
 };
 
 window.linkTwitter = () => {
