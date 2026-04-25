@@ -12,19 +12,20 @@
 // Replace with your actual Firebase config for production.
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBSAfeL0EIwFFvHaTVsJBCBFqwPkHWnTLs",
+    authDomain: "pricepulse-global.firebaseapp.com",
+    projectId: "pricepulse-global",
+    storageBucket: "pricepulse-global.firebasestorage.app",
+    messagingSenderId: "947199643162",
+    appId: "1:947199643162:web:c9908bc5dd5b3a0e224ba3",
+    measurementId: "G-HDNV2SL7KF"
 };
 
 // Firebase services (initialized after DOM)
 let firebaseAuth = null;
 let firebaseDb = null;
-let firebaseApp = null;
 let authInitialized = false;
+let db = null;
 
 // Initialize Firebase
 function initializeFirebase() {
@@ -36,17 +37,17 @@ function initializeFirebase() {
         }
         
         // Initialize Firebase app
-        firebaseApp = firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         
         // Initialize services
         firebaseAuth = firebase.auth();
-        firebaseDb = firebase.firestore();
+        db = firebase.firestore();
         
         // Enable persistence
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
         
         authInitialized = true;
-        console.log('✅ Firebase initialized');
+        console.log('✅ Firebase initialized with pricepulse-global');
         
         // Set up auth state listener
         firebaseAuth.onAuthStateChanged(handleAuthStateChange);
