@@ -32,6 +32,7 @@ const NOTIFS = [
     { id: 3, type: 'drop', text: 'Price Drop! "Elite Watch" is now $50 cheaper.', time: '1h ago', icon: 'trending-down', color: 'var(--accent-lime)' }
 ];
 
+// Initialize state
 let state = { 
     finds: [...DATA], 
     bounties: [...BOUNTIES],
@@ -45,8 +46,8 @@ let state = {
     map: null,
     markers: [],
     hasUnreadNotifs: true,
-    favorites: JSON.parse(localStorage.getItem('favorites')) || [],
-    alerts: JSON.parse(localStorage.getItem('alerts')) || [],
+    favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
+    alerts: JSON.parse(localStorage.getItem('alerts') || '[]'),
     searchQuery: "",
     activeCategory: "all",
     searchMode: false
@@ -711,8 +712,8 @@ function renderCategories() {
 
 document.addEventListener('DOMContentLoaded', () => { 
     updateIdentityUI();
-    renderFeed(); 
     renderCategories();
+    renderFeed(); 
     renderLeaderboard();
     lucide.createIcons(); 
     if (navigator.geolocation) {
