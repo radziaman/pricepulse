@@ -41,6 +41,7 @@ let state = {
     currentTab: 'deals',
     currentRadius: 10,
     userCoords: null,
+    userLocationName: null,
     isLoggedIn: localStorage.getItem('pulse_auth') === 'true',
     user: JSON.parse(localStorage.getItem('pulse_user')) || { name: "Guest Hunter", bio: "Hunting deals...", home: "Singapore" },
     map: null,
@@ -55,7 +56,36 @@ let state = {
 
 const get = (id) => document.getElementById(id);
 
-// --- 1. MAP INITIALIZATION ---
+// --- 1. REVERSE GEOCODING ---
+
+async function reverseGeocode(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+        const data = await response.json();
+        
+        if (data.address) {
+            const addr = data.address;
+            const parts = [];
+            
+            if (addr.building) parts.push(addr.building);
+            if (addr.road) parts.push(addr.road);
+            if (addr.neighbourhood) parts.push(addr.neighbourhood);
+            if (addr.suburb) parts.push(addr.suburb);
+            if (addr.city) parts.push(addr.city);
+            else if (addr.town) parts.push(addr.town);
+            else if (addr.county) parts.push(addr.county);
+            if (addr.country) parts.push(addr.country);
+            
+            return parts.join(', ') || data.display_name?.split(',').slice(0,2).join(',') || 'Unknown location';
+        }
+        return data.display_name?.split(',').slice(0,2).join(',') || 'Unknown location';
+    } catch (e) {
+        console.error('Geocode error:', e);
+        return 'Location detected';
+    }
+}
+
+// --- 2. MAP INITIALIZATION ---
 
 window.initMap = () => {
     const mapContainer = get('leaflet-map');
@@ -85,7 +115,7 @@ window.initMap = () => {
     
     L.marker([userLat, userLng], { icon: userIcon, draggable: true })
         .addTo(state.map)
-        .bindPopup(`<div style="text-align:center;"><b style="color:#3b82f6;">📍 You are here</b><br><span style="font-size:0.7rem;">${userLat.toFixed(4)}, ${userLng.toFixed(4)}</span></div>`)
+        .bindPopup(`<div style="text-align:center;min-width:150px;"><b style="color:#3b82f6;">📍 You are here</b><br><span style="font-size:0.75rem;opacity:0.7;">${state.userLocationName || 'Location detected'}</span></div>`)
         .openPopup();
     
     // Add deal markers
@@ -793,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (locationStatus) locationStatus.innerText = "📍 Getting location...";
         
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            async (position) => {
                 state.userCoords = { 
                     lat: position.coords.latitude, 
                     lng: position.coords.longitude,
@@ -801,14 +831,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 
                 if (get('current-location-text')) {
-                    const lat = position.coords.latitude.toFixed(4);
-                    const lng = position.coords.longitude.toFixed(4);
-                    get('current-location-text').innerHTML = `📍 ${lat}, ${lng}`;
+                    get('current-location-text').innerText = "📍 Getting location...";
+                    
+                    // Reverse geocode to get address
+                    const address = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+                    state.userLocationName = address;
+                    get('current-location-text').innerHTML = `<i data-lucide="map-pin" size="14"></i> ${address}`;
+                    lucide.createIcons();
                 }
                 
-                // Sort deals by proximity
                 sortFeedByProximity();
-                console.log("GPS Location:", state.userCoords);
+                console.log("GPS Location:", state.userCoords, "Address:", state.userLocationName);
             },
             (error) => {
                 console.error("Location error:", error.message);
