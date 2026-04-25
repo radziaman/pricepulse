@@ -146,7 +146,59 @@ body::before {
     .app-container { grid-template-columns: 1fr; }
     .sidebar, .right-sidebar { display: none; }
     .mobile-nav { display: flex; }
-    .main-feed { padding: 20px; padding-bottom: 120px; }
+    .main-feed { padding: 15px; padding-bottom: 120px; }
+    
+    /* Mobile header */
+    header { padding: 0; }
+    header > div:first-child { flex-direction: column; gap: 10px; }
+    header > div:first-child > div:first-child { width: 100%; justify-content: space-between; }
+    
+    /* Smaller logo on mobile */
+    .logo-text { font-size: 1.1rem !important; }
+    .logo-icon { width: 32px !important; height: 32px !important; }
+    
+    /* Search bar mobile */
+    #search-input { font-size: 0.9rem; padding: 10px 15px; }
+    
+    /* Card mobile */
+    .card { padding: 16px; border-radius: 20px; }
+    .card-image { height: 200px !important; border-radius: 16px; }
+    .price-pill { font-size: 1.4rem !important; padding: 6px 16px; }
+    
+    /* Sidebar mobile nav */
+    .mobile-nav { 
+        display: flex; 
+        left: 15px; right: 15px; 
+        bottom: 15px;
+        padding: 0 10px;
+    }
+    .nav-pill { width: 45px; height: 45px; }
+    
+    /* Popups mobile */
+    .pop-content { 
+        width: 95%; 
+        padding: 25px; 
+        border-radius: 25px;
+    }
+    
+    /* Map mobile */
+    #map-view { height: 60vh !important; }
+}
+
+@media (max-width: 480px) {
+    .logo-text { font-size: 1rem !important; }
+    .logo-icon { width: 28px !important; height: 28px !important; }
+    
+    #tab-deals, #tab-bounties { 
+        font-size: 0.75rem; 
+        padding: 8px;
+    }
+    
+    .card-image { height: 180px !important; }
+    h2 { font-size: 1.3rem !important; }
+    
+    .action-chip { padding: 8px 12px; font-size: 0.8rem; }
+    .btn-fun { padding: 14px; font-size: 1rem; }
 }
 
 /* --- Pop Modals --- */
