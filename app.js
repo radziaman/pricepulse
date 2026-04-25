@@ -363,7 +363,7 @@ window.requestEmailVerification = () => {
     localStorage.setItem('pending_verification', verificationCode);
     
     // Show verification modal
-    get('verification-modal').style.display = 'flex';
+    window.openModal('verification-modal');
     get('verification-email-display').innerText = email;
     showNotification("📧 Verification code sent!");
     
@@ -532,7 +532,7 @@ window.analyzeWithAI = async () => {
     try {
         const analysis = await window.analyzeDealWithAI(item.name, item.price, item.loc);
         get('ai-analysis-result').innerText = analysis || "Analysis complete!";
-        get('ai-analysis-modal').style.display = 'flex';
+        window.openModal('ai-analysis-modal');
     } catch(e) {
         showNotification("AI analysis unavailable");
     }
@@ -543,7 +543,7 @@ window.getAIRecs = async () => {
     try {
         const recs = await window.getAIRecommendations(state.user);
         get('ai-recs-result').innerText = recs || "Check back soon!";
-        get('ai-recs-modal').style.display = 'flex';
+        window.openModal('ai-recs-modal');
     } catch(e) {
         showNotification("AI recommendations unavailable");
     }
@@ -563,6 +563,7 @@ window.logout = () => { localStorage.clear(); location.reload(); };
 
 window.openNotifications = () => {
     if (!state.isLoggedIn) { window.openAuth(); return; }
+    window.closeModals();
     get('notif-drawer').style.display = 'flex';
     get('notif-dot').style.display = 'none';
     state.hasUnreadNotifs = false;
@@ -639,7 +640,9 @@ window.switchTab = (tab) => {
 window.showComparison = (id) => {
     if (!state.isLoggedIn) { window.openAuth(); return; }
     const item = state.finds.find(i => i.id === id); if (!item) return;
-    state.currentSelectedItem = item; get('analytics-title').innerText = item.name; get('analytics-modal').style.display = 'flex';
+    state.currentSelectedItem = item; 
+    get('analytics-title').innerText = item.name; 
+    window.openModal('analytics-modal');
     updateComparisonUI(item);
     get('radius-slider').oninput = (e) => { state.currentRadius = parseInt(e.target.value); get('radius-val').innerText = state.currentRadius + 'km'; updateComparisonUI(item); };
 };
@@ -753,16 +756,28 @@ window.submitForm = () => {
     }, 1600);
 };
 
+window.closeModals = () => { 
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.style.display = 'none';
+    }); 
+};
+
+window.openModal = (id) => {
+    window.closeModals();
+    const modal = get(id);
+    if (modal) modal.style.display = 'flex';
+};
+
 window.sharePulse = () => {
     const item = state.currentSelectedItem; if(!item) return;
     const savings = item.homePrice - item.price;
     const text = `🚀 Pulse Alert! Found ${item.name} for $${item.price.toLocaleString()} at ${item.loc}! That's $${savings.toFixed(2)} cheaper than home! #PricePulse`;
-    get('share-text').innerText = text; get('share-modal').style.display = 'flex';
+    get('share-text').innerText = text; 
+    window.openModal('share-modal');
 };
 
-window.openUpload = () => get('upload-modal').style.display = 'flex';
-window.closeModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
-window.openAuth = () => get('auth-modal').style.display = 'flex';
+window.openUpload = () => window.openModal('upload-modal');
+window.openAuth = () => window.openModal('auth-modal');
 window.toggleDrawer = () => { 
     const drawer = get('profile-drawer');
     if (!state.isLoggedIn) { 
@@ -774,7 +789,7 @@ window.toggleDrawer = () => {
 };
 
 window.closeProfileDrawer = () => { get('profile-drawer').style.display = 'none'; };
-window.openProfileDrawer = () => { get('profile-drawer').style.display = 'flex'; };
+window.openProfileDrawer = () => { window.closeModals(); get('profile-drawer').style.display = 'flex'; };
 window.openLikes = () => showNotification("Likes coming soon! ❤️");
 
 window.renderLeaderboard = () => {
