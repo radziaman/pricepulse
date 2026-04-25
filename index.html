@@ -65,17 +65,18 @@
                     </div>
                 </div>
                 
-                <!-- Categories -->
-                <div id="categories-bar" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px;">
-                </div>
-                
+                <!-- Tab Switcher -->
                 <div style="display: flex; gap: 10px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 20px;">
                     <div id="tab-deals" class="action-chip" style="flex: 1; justify-content: center; background: var(--accent-lime); color: #000;" onclick="switchTab('deals')">HOT DEALS</div>
                     <div id="tab-bounties" class="action-chip" style="flex: 1; justify-content: center;" onclick="switchTab('bounties')">BOUNTIES 💰</div>
                 </div>
                 
+                <!-- Categories (between search and feed) -->
+                <div id="categories-bar" style="display:flex; gap:8px; overflow-x:auto; padding: 10px 0; margin: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                </div>
+                
                 <!-- Location Status -->
-                <div id="location-status" style="font-size: 0.75rem; color: var(--text-gray); margin-top: 10px;">
+                <div id="location-status" style="font-size: 0.75rem; color: var(--text-gray); margin-bottom: 10px;">
                     <i data-lucide="map-pin" size="14"></i> <span id="current-location-text">Location: Detecting...</span>
                 </div>
             </header>
