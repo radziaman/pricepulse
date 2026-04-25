@@ -23,9 +23,8 @@ const firebaseConfig = {
 
 // Firebase services (initialized after DOM)
 let firebaseAuth = null;
-let firebaseDb = null;
-let authInitialized = false;
 let db = null;
+let authInitialized = false;
 
 // Initialize Firebase
 function initializeFirebase() {
@@ -221,7 +220,7 @@ async function logoutFirebase() {
 
 // Save user profile to Firestore
 async function saveProfileToFirestore() {
-    if (!firebaseDb || !firebaseAuth?.currentUser) return;
+    if (!db || !firebaseAuth?.currentUser) return;
     
     const userData = {
         name: get('profile-name').value,
@@ -231,7 +230,7 @@ async function saveProfileToFirestore() {
     };
     
     try {
-        await firebaseDb.collection('users').doc(firebaseAuth.currentUser.uid).set(userData, { merge: true });
+        await db.collection('users').doc(firebaseAuth.currentUser.uid).set(userData, { merge: true });
         state.user = { ...state.user, ...userData };
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
         updateIdentityUI();
