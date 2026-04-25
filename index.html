@@ -27,8 +27,18 @@
         <main class="main-feed">
             <header style="margin-bottom: 30px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div onclick="openNotifications()" style="position: relative; width: 50px; height: 50px; border-radius: 18px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <!-- Logo -->
+                        <div onclick="switchView('feed')" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 40px; height: 40px; background: var(--accent-lime); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 1.5rem; font-weight: 900; color: #000;">P</span>
+                            </div>
+                            <span style="font-family: 'Outfit'; font-weight: 900; font-size: 1.4rem; color: white;">PricePulse</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div onclick="openNotifications()" style="position: relative; width: 50px; height: 50px; border-radius: 18px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer;">
                         <i data-lucide="bell" size="20"></i>
                         <div id="notif-dot" style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: var(--accent-pink); border-radius: 50%; box-shadow: 0 0 10px var(--accent-pink);"></div>
                     </div>
@@ -42,7 +52,6 @@
                             <i data-lucide="user" size="22"></i>
                         </div>
                     </div>
-                </div>
                 </div>
                 <div style="display: flex; gap: 10px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 20px;">
                     <div id="tab-deals" class="action-chip" style="flex: 1; justify-content: center; background: var(--accent-lime); color: #000;" onclick="switchTab('deals')">HOT DEALS</div>
