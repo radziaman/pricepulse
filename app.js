@@ -730,11 +730,69 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFeed(); 
     renderLeaderboard();
     lucide.createIcons(); 
+    
+    // Request real GPS location
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(p => {
-            state.userCoords = { lat: p.coords.latitude, lng: p.coords.longitude };
-            if(get('current-location-text')) get('current-location-text').innerText = "Nearby detected";
-            sortFeedByProximity();
-        });
+        const locationStatus = get('current-location-text');
+        if (locationStatus) locationStatus.innerText = "📍 Getting location...";
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                state.userCoords = { 
+                    lat: position.coords.latitude, 
+                    lng: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+                
+                if (get('current-location-text')) {
+                    get('current-location-text').innerText = "📍 Location enabled";
+                }
+                
+                // Sort deals by proximity
+                sortFeedByProximity();
+                console.log("GPS Location:", state.userCoords);
+            },
+            (error) => {
+                console.error("Location error:", error.message);
+                if (get('current-location-text')) {
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            get('current-location-text').innerText = "❌ Location denied";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            get('current-location-text').innerText = "❌ Location unavailable";
+                            break;
+                        case error.TIMEOUT:
+                            get('current-location-text').innerText = "⏳ Location timeout";
+                            break;
+                        default:
+                            get('current-location-text').innerText = "❌ Location error";
+                    }
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+        
+        // Also watch position for updates
+        navigator.geolocation.watchPosition(
+            (position) => {
+                state.userCoords = { 
+                    lat: position.coords.latitude, 
+                    lng: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+                sortFeedByProximity();
+            },
+            null,
+            { enableHighAccuracy: true }
+        );
+    } else {
+        if (get('current-location-text')) {
+            get('current-location-text').innerText = "❌ GPS not supported";
+        }
     }
 });
