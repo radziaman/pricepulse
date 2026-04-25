@@ -43,11 +43,13 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-white);
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     height: 100vh;
     height: 100dvh;
     width: 100vw;
     width: 100dvw;
+    -webkit-overflow-scrolling: touch;
 }
 
 h1, h2, h3 { font-family: 'Outfit', sans-serif; }
@@ -233,11 +235,12 @@ body::before {
         padding: var(--space-xs) var(--space-md) !important;
     }
     
-    /* Buttons mobile */
+    /* Buttons mobile - keep them touch-friendly */
     .btn-fun {
-        padding: var(--space-sm) var(--space-md);
-        font-size: var(--text-sm);
-        border-radius: var(--radius-sm);
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-base);
+        border-radius: var(--radius-md);
+        min-height: 48px;
     }
     
     /* Popups mobile */
@@ -310,16 +313,24 @@ input:focus { border-color: var(--accent-lime); transform: scale(1.02); }
     background: var(--accent-lime);
     color: #000;
     border: none;
-    padding: 18px;
+    padding: var(--space-md) var(--space-lg);
     border-radius: var(--radius-pill);
     font-weight: 900;
-    font-size: 1.1rem;
+    font-size: var(--text-base);
     width: 100%;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(204, 255, 0, 0.2);
     transition: 0.3s var(--spring-easing);
+    min-height: 48px;
 }
+.btn-fun:active { transform: scale(0.98); }
 .btn-fun:hover { transform: translateY(-5px) scale(1.02); }
+.btn-fun:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Ensure all interactive elements have pointer events */
+button, a, div[onclick], span[onclick] {
+    pointer-events: auto;
+}
 
 /* --- Custom Pulse Map Markers --- */
 .pulse-marker {
