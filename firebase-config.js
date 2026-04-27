@@ -63,8 +63,8 @@ function handleAuthStateChange(user) {
     if (user) {
         // User is signed in
         state.isLoggedIn = true;
-        state.user = {
-            uid: user.uid,
+        state.currentUser = {
+            id: user.uid,
             name: user.displayName || user.email?.split('@')[0] || 'User',
             email: user.email,
             photo: user.photoURL,
@@ -73,8 +73,9 @@ function handleAuthStateChange(user) {
             bio: "Price Hunter",
             home: "Singapore"
         };
+        state.user = state.currentUser;
         localStorage.setItem('pulse_auth', 'true');
-        localStorage.setItem('pulse_user', JSON.stringify(state.user));
+        localStorage.setItem('pulse_user', JSON.stringify(state.currentUser));
         updateIdentityUI();
         renderFeed();
     } else {
