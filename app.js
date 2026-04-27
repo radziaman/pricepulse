@@ -963,66 +963,75 @@ function renderFeed() {
     const container = get('feed-container'); 
     container.innerHTML = '';
     
-    // Get filtered deals
     let list = getFilteredDeals();
     
-    // Show favorites only
     if (state.currentTab === 'favorites') {
         list = list.filter(d => state.favorites.includes(d.id));
     }
     
-    list = state.isLoggedIn ? list : list.slice(0, 3);
-    
-    list.forEach(async item => {
-        const card = document.createElement('div'); 
-        card.className = 'card';
+    list.forEach(item => {
         const uName = item.user === "You 🌟" ? state.user.name + " (You)" : item.user;
+        const hasLiked = window.hasLiked(item.id);
         const isFav = window.isFavorite(item.id);
-        const shares = item.shares || 0;
         const savings = item.homePrice - item.price;
         const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
-        const bargainScore = item.bargainScore || Math.min(10, Math.floor(savingsPct / 3) + 5);
-        const hasLiked = window.hasLiked(item.id);
         
-        // AI bargain indicator
-        const bargainEmoji = bargainScore >= 8 ? '🔥' : bargainScore >= 6 ? '⭐' : '💎';
+        const card = document.createElement('div'); 
+        card.className = 'insta-card';
         
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <div onclick="window.showUserProfile('${item.user}')" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
-                    <div style="width:40px; height:40px; border-radius:12px; background:var(--accent-lime); color:#000; display:flex; align-items:center; justify-content:center; font-weight:900;">${uName[0]}</div>
-                    <span style="font-weight:700;">${uName}</span>
+            <div class="card-header">
+                <div class="card-avatar" onclick="window.showUserProfile('${item.user}')">${uName[0]}</div>
+                <div class="card-user" onclick="window.showUserProfile('${item.user}')">${uName}</div>
+                <div class="card-location">${item.loc}</div>
+            </div>
+            
+            <div class="card-content" onclick="window.showComparison(${item.id})">
+                <img src="${item.img}" class="card-image">
+                <div class="card-price">$${item.price.toLocaleString()}</div>
+            </div>
+            
+            <div class="card-actions">
+                <div class="action-btn ${hasLiked ? 'liked' : ''}" onclick="window.toggleLike(${item.id})">
+                    <i data-lucide="heart" size="26" fill="${hasLiked ? 'var(--accent-pink)' : 'none'}"></i>
                 </div>
-                <div style="display:flex; gap:8px;">
-                    <div onclick="window.toggleFavorite(${item.id})" style="cursor:pointer; font-size:1.5rem;">${isFav ? '❤️' : '🤍'}</div>
-                    <div onclick="window.reportDeal(${item.id})" style="cursor:pointer; color:var(--text-gray);">🚩</div>
+                <div class="action-btn" onclick="window.openComments(${item.id})">
+                    <i data-lucide="message-circle" size="26"></i>
+                </div>
+                <div class="action-btn" onclick="window.sharePulse()">
+                    <i data-lucide="send" size="26"></i>
+                </div>
+                <div style="flex:1;"></div>
+                <div class="action-btn" onclick="window.toggleFavorite(${item.id})">
+                    <i data-lucide="bookmark" size="26" fill="${isFav ? 'var(--accent-lime)' : 'none'}"></i>
                 </div>
             </div>
-            <div class="price-pill" onclick="window.showComparison(${item.id})">$${item.price.toLocaleString()}</div>
-            <h2 style="margin-bottom:10px; font-size:1.6rem;" onclick="window.showComparison(${item.id})">${item.name}</h2>
-            <p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:10px;">📍 ${item.loc}</p>
-            <div style="font-size:0.75rem; color:var(--accent-lime); margin-bottom:15px;">${bargainEmoji} ${savingsPct}% off (Score: ${bargainScore}/10)</div>
-            ${item.tagline ? `<p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:10px; font-style:italic;">"${item.tagline}"</p>` : ''}
-            <img src="${item.img}" class="card-image" onclick="window.showComparison(${item.id})">
-            <div style="display:flex; gap:15px; margin:15px 0; font-size:0.8rem; color:var(--text-gray);">
-                <span onclick="window.toggleLike(${item.id})" style="cursor:pointer; ${hasLiked ? 'color:var(--accent-pink);' : ''}">${hasLiked ? '❤️' : '🤍'} ${item.likes}</span>
-                <span onclick="window.openComments(${item.id})" style="cursor:pointer;">💬 ${(state.comments[item.id] || []).length}</span>
-                <span onclick="window.createAlert('${item.name}')" style="cursor:pointer; color:var(--accent-lime);">🔔 Alert</span>
-            </div>
-            <div class="social-bar">
-                <div class="action-chip" style="background:var(--accent-lime); color:#000;" onclick="window.showComparison(${item.id})">RADAR SCAN <i data-lucide="crosshair" size="18"></i></div>
-                <div class="action-chip" onclick="window.sharePulse()"><i data-lucide="share-2" size="18"></i></div>
-                <div class="action-chip" onclick="window.openComments(${item.id})"><i data-lucide="message-circle" size="18"></i></div>
+            
+            <div class="card-info">
+                <div class="likes-count">${item.likes} likes</div>
+                <div class="deal-caption">
+                    <span style="font-weight: 600;">${uName}</span> ${item.name}
+                    ${item.tagline ? `<span class="deal-tagline">"${item.tagline}"</span>` : ''}
+                </div>
+                <div class="view-comments" onclick="window.openComments(${item.id})">
+                    View all ${(state.comments[item.id] || []).length} comments
+                </div>
+                <div class="time-posted">${savingsPct}% OFF</div>
             </div>
         `;
         container.appendChild(card);
     });
     
-    if (!state.isLoggedIn && state.finds.length > 3) {
-        const cta = document.createElement('div'); cta.className = 'card'; cta.style = 'text-align:center; background:#1a1a24; border: 2px dashed var(--accent-lime); padding: 40px 20px;';
-        cta.innerHTML = `<i data-lucide="lock" size="32" style="color:var(--accent-lime); margin-bottom:15px;"></i><h3 style="margin-bottom:10px;">Unlock ${state.finds.length-3} more deals!</h3><button class="btn-fun" onclick="window.openAuth()">Sign Up for Free</button>`;
-        container.appendChild(cta);
+    if (list.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📸</div>
+                <h3>No deals yet</h3>
+                <p>Be the first to share a deal!</p>
+            </div>
+        `;
     }
+    
     lucide.createIcons();
 }
 
@@ -1128,8 +1137,73 @@ window.renderLeaderboard = () => {
 };
 
 function showNotification(msg) {
-    const n = document.createElement('div'); n.className = 'card'; n.style = 'position:fixed; bottom:120px; left:50%; transform:translateX(-50%); padding:1rem 2rem; border-radius:50px; z-index:9000; background:var(--accent-lime); color:#000; font-weight:900; box-shadow:0 10px 30px rgba(0,0,0,0.5);';
-    n.innerText = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
+    const n = document.createElement('div'); 
+    n.style = 'position:fixed; bottom: 80px; left: 50%; transform:translateX(-50%); padding: 12px 24px; border-radius: 50px; z-index: 9999; background: var(--text-white); color: var(--bg-dark); font-weight: 600; font-size: 14px;';
+    n.innerText = msg; 
+    document.body.appendChild(n); 
+    setTimeout(() => n.remove(), 2000);
+}
+
+// --- PROFILE FUNCTIONS ---
+window.openProfile = () => {
+    const nameEl = get('profile-name');
+    const levelEl = get('profile-level');
+    const dealsEl = get('profile-deals');
+    const followersEl = get('profile-followers');
+    const followingEl = get('profile-following');
+    const initialEl = get('profile-initial');
+    
+    const name = state.user.name || 'Pulse Hunter';
+    const level = getLevelFromXP(state.user.xp || 0);
+    const xp = state.user.xp || 0;
+    
+    if (nameEl) nameEl.innerText = name;
+    if (levelEl) levelEl.innerText = `Level ${level} • ${xp} XP`;
+    if (dealsEl) dealsEl.innerText = state.user.deals || 0;
+    if (followersEl) followersEl.innerText = state.user.followers || 0;
+    if (followingEl) followingEl.innerText = state.user.following || 0;
+    if (initialEl) initialEl.innerText = name[0];
+    
+    window.openModal('profile-modal');
+};
+
+// --- NEW MODAL FUNCTIONS ---
+window.openModal = (id) => {
+    window.closeModals();
+    const modal = get(id);
+    if (modal) modal.style.display = 'flex';
+    if (id === 'profile-modal') window.openProfile();
+    if (id === 'activity-modal') renderActivity();
+    lucide.createIcons();
+};
+
+window.closeModal = () => {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+};
+
+window.closeModals = window.closeModal;
+
+// --- RENDER ACTIVITY ---
+function renderActivity() {
+    const list = get('activity-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    state.notifications.forEach(n => {
+        const item = document.createElement('div');
+        item.style = 'display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border-color);';
+        item.innerHTML = `
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: ${n.color}22; color: ${n.color}; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="${n.icon}" size="18"></i>
+            </div>
+            <div style="flex: 1;">
+                <p style="font-size: 14px;">${n.text}</p>
+                <p style="font-size: 12px; color: var(--text-gray);">${n.time}</p>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+    lucide.createIcons();
 }
 
 // --- USER PROFILE VIEW ---
