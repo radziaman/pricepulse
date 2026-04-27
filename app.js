@@ -527,7 +527,7 @@ window.analyzeWithAI = async () => {
         return;
     }
     const item = state.currentSelectedItem;
-    showNotification("🧠 AI is analyzing...");
+    showNotification("🤖 AI is analyzing...");
     
     try {
         const analysis = await window.analyzeDealWithAI(item.name, item.price, item.loc);
@@ -539,13 +539,27 @@ window.analyzeWithAI = async () => {
 };
 
 window.getAIRecs = async () => {
-    showNotification("🧠 Getting recommendations...");
+    showNotification("🤖 Getting recommendations...");
     try {
         const recs = await window.getAIRecommendations(state.user);
         get('ai-recs-result').innerText = recs || "Check back soon!";
         window.openModal('ai-recs-modal');
     } catch(e) {
         showNotification("AI recommendations unavailable");
+    }
+};
+
+window.aiChat = async (message) => {
+    showNotification("🤖 AI is thinking...");
+    try {
+        const reply = await window.aiChat(message, state.aiHistory || []);
+        get('ai-chat-output').innerText = reply;
+        state.aiHistory = state.aiHistory || [];
+        state.aiHistory.push({ role: 'user', content: message });
+        state.aiHistory.push({ role: 'assistant', content: reply });
+        window.openModal('ai-chat-modal');
+    } catch(e) {
+        showNotification("AI chat unavailable");
     }
 };
 
@@ -682,12 +696,18 @@ function renderFeed() {
     
     list = state.isLoggedIn ? list : list.slice(0, 3);
     
-    list.forEach(item => {
+    list.forEach(async item => {
         const card = document.createElement('div'); 
         card.className = 'card';
         const uName = item.user === "You 🌟" ? state.user.name + " (You)" : item.user;
         const isFav = window.isFavorite(item.id);
         const shares = item.shares || 0;
+        const savings = item.homePrice - item.price;
+        const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
+        const bargainScore = item.bargainScore || Math.min(10, Math.floor(savingsPct / 3) + 5);
+        
+        // AI bargain indicator
+        const bargainEmoji = bargainScore >= 8 ? '🔥' : bargainScore >= 6 ? '⭐' : '💎';
         
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -702,7 +722,9 @@ function renderFeed() {
             </div>
             <div class="price-pill" onclick="window.showComparison(${item.id})">$${item.price.toLocaleString()}</div>
             <h2 style="margin-bottom:10px; font-size:1.6rem;" onclick="window.showComparison(${item.id})">${item.name}</h2>
-            <p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:15px;">📍 ${item.loc}</p>
+            <p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:10px;">📍 ${item.loc}</p>
+            <div style="font-size:0.75rem; color:var(--accent-lime); margin-bottom:15px;">${bargainEmoji} ${savingsPct}% off (Score: ${bargainScore}/10)</div>
+            ${item.tagline ? `<p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:10px; font-style:italic;">"${item.tagline}"</p>` : ''}
             <img src="${item.img}" class="card-image" onclick="window.showComparison(${item.id})">
             <div style="display:flex; gap:15px; margin:15px 0; font-size:0.8rem; color:var(--text-gray);">
                 <span>❤️ ${item.likes}</span>
@@ -743,17 +765,45 @@ window.huntBounty = (id) => {
 
 // --- 8. GLOBAL UTILS ---
 
-window.submitForm = () => {
+window.submitForm = async () => {
     if(!state.isLoggedIn) { window.openAuth(); return; }
     const name = get('inp-name').value; const price = get('inp-price').value; const loc = get('inp-loc').value;
     if(!name || !price || !loc) return;
     const form = get('upload-form'); const orig = form.innerHTML;
-    form.innerHTML = `<div style="padding:40px 0; text-align:center;"><i data-lucide="scan" class="pulse-anim" size="48" style="color:var(--accent-lime); margin-bottom:20px;"></i><p style="font-weight:800;">ANALYZING PULSE...</p><div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; margin-top:20px; overflow:hidden;"><div id="scan-bar" style="width:0%; height:100%; background:var(--accent-lime); transition: width 1.5s linear;"></div></div></div>`;
+    form.innerHTML = `<div style="padding:40px 0; text-align:center;"><i data-lucide="scan" class="pulse-anim" size="48" style="color:var(--accent-lime); margin-bottom:20px;"></i><p style="font-weight:800;">AI ANALYZING...</p><div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; margin-top:20px; overflow:hidden;"><div id="scan-bar" style="width:0%; height:100%; background:var(--accent-lime); transition: width 1.5s linear;"></div></div></div>`;
     lucide.createIcons(); setTimeout(() => get('scan-bar').style.width = '100%', 50);
-    setTimeout(() => {
-        state.finds.unshift({ id: Date.now(), user: "You 🌟", name, price: parseFloat(price), loc, img: "https://images.unsplash.com/photo-1512428559083-a400562e445f?auto=format&fit=crop&q=80&w=1000", homePrice: parseFloat(price)*1.1, lat: state.userCoords ? state.userCoords.lat : 1.3, lng: state.userCoords ? state.userCoords.lng : 103.8 });
+    
+    // AI Auto-categorize
+    let category = 'other';
+    try {
+        category = await window.autoCategorize(name);
+    } catch(e) { console.log('Auto-categorize failed, using default'); }
+    
+    setTimeout(async () => {
+        const deal = { 
+            id: Date.now(), 
+            user: "You 🌟", 
+            name, 
+            price: parseFloat(price), 
+            loc, 
+            category,
+            img: "https://images.unsplash.com/photo-1512428559083-a400562e445f?auto=format&fit=crop&q=80&w=1000", 
+            homePrice: parseFloat(price)*1.1, 
+            lat: state.userCoords ? state.userCoords.lat : 1.3, 
+            lng: state.userCoords ? state.userCoords.lng : 103.8 
+        };
+        
+        // AI generate description and tagline
+        try {
+            deal.description = await window.generateDealDescription(name, price, category);
+            deal.tagline = await window.generateDealTagline(name, price, deal.homePrice - price);
+            deal.bargainScore = await window.getBargainScore(deal);
+        } catch(e) { console.log('AI enhancement failed'); }
+        
+        state.finds.unshift(deal);
         form.innerHTML = orig; renderFeed(); window.closeModals(); window.updateMapMarkers();
-    }, 1600);
+        showNotification("🤖 Deal posted with AI insights!");
+    }, 800);
 };
 
 window.closeModals = () => { 
