@@ -961,9 +961,20 @@ function updateComparisonUI(item) {
 
 function renderFeed() {
     const container = get('feed-container'); 
+    if (!container) {
+        console.error('Feed container not found');
+        return;
+    }
+    
     container.innerHTML = '';
     
+    if (!state.finds || state.finds.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📸</div><h3>No deals yet</h3><p>Be the first to share a deal!</p></div>';
+        return;
+    }
+    
     let list = getFilteredDeals();
+    console.log('Rendering', list.length, 'deals');
     
     if (state.currentTab === 'favorites') {
         list = list.filter(d => state.favorites.includes(d.id));
@@ -1279,10 +1290,12 @@ function renderCategories() {
 // --- 9. LIFECYCLE ---
 
 document.addEventListener('DOMContentLoaded', () => { 
+    console.log('PricePulse loading...');
+    console.log('State finds:', state.finds?.length);
+    console.log('Container:', !!get('feed-container'));
+    
     updateIdentityUI();
-    renderCategories();
     renderFeed(); 
-    renderLeaderboard();
     lucide.createIcons(); 
     
     // Request real GPS location
