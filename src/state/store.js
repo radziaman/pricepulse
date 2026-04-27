@@ -227,7 +227,6 @@ class StateManager {
         
         return sorted;
     }
-}
 
     getLevelFromXP(xp) {
         if (xp >= 5000) return 5;

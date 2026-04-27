@@ -1068,44 +1068,96 @@ window.huntBounty = (id) => {
 // --- 8. GLOBAL UTILS ---
 
 window.submitForm = async () => {
-    if(!state.isLoggedIn) { window.openAuth(); return; }
-    const name = get('inp-name').value; const price = get('inp-price').value; const loc = get('inp-loc').value;
-    if(!name || !price || !loc) return;
-    const form = get('upload-form'); const orig = form.innerHTML;
+    // 1. Check login requirement
+    if(!state.isLoggedIn) {
+        window.closeModals();
+        window.openAuth();
+        showNotification("🔒 Please sign in to share deals", "warning");
+        return;
+    }
+    
+    // 2. Get form values
+    const imageInput = get('inp-image');
+    const name = get('inp-name').value.trim();
+    const price = get('inp-price').value.trim();
+    const regularPrice = get('inp-regular-price').value.trim();
+    const locType = get('inp-loc-type').value;
+    const shopName = get('inp-shop-name').value.trim();
+    const unit = get('inp-unit').value.trim();
+    const desc = get('inp-desc').value.trim();
+    const category = get('inp-category').value;
+    
+    // 3. Validate required fields
+    const errors = [];
+    if(!imageInput.files || !imageInput.files[0]) errors.push("Product photo is required");
+    if(!name) errors.push("Product name is required");
+    if(!price) errors.push("Current price is required");
+    if(!locType) errors.push("Location type is required");
+    if(!shopName) errors.push("Shop/Mall name is required");
+    if(!category) errors.push("Category is required");
+    
+    if(errors.length > 0) {
+        showNotification("⚠️ " + errors[0], "warning");
+        return;
+    }
+    
+    const form = get('upload-form-container'); const orig = form.innerHTML;
     form.innerHTML = `<div style="padding:40px 0; text-align:center;"><i data-lucide="scan" class="pulse-anim" size="48" style="color:var(--accent-lime); margin-bottom:20px;"></i><p style="font-weight:800;">AI ANALYZING...</p><div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; margin-top:20px; overflow:hidden;"><div id="scan-bar" style="width:0%; height:100%; background:var(--accent-lime); transition: width 1.5s linear;"></div></div></div>`;
     lucide.createIcons(); setTimeout(() => get('scan-bar').style.width = '100%', 50);
     
-    // AI Auto-categorize
-    let category = 'other';
-    try {
-        category = await window.autoCategorize(name);
-    } catch(e) { console.log('Auto-categorize failed, using default'); }
-    
-    setTimeout(async () => {
-        const deal = { 
-            id: Date.now(), 
-            user: "You 🌟", 
-            name, 
-            price: parseFloat(price), 
-            loc, 
-            category,
-            img: "https://images.unsplash.com/photo-1512428559083-a400562e445f?auto=format&fit=crop&q=80&w=1000", 
-            homePrice: parseFloat(price)*1.1, 
-            lat: state.userCoords ? state.userCoords.lat : 1.3, 
-            lng: state.userCoords ? state.userCoords.lng : 103.8 
-        };
+    // Read image as base64
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const imageData = e.target.result;
         
-        // AI generate description and tagline
-        try {
-            deal.description = await window.generateDealDescription(name, price, category);
-            deal.tagline = await window.generateDealTagline(name, price, deal.homePrice - price);
-            deal.bargainScore = await window.getBargainScore(deal);
-        } catch(e) { console.log('AI enhancement failed'); }
+        // Process fields
+        const dealPrice = parseFloat(price);
+        const origPrice = regularPrice ? parseFloat(regularPrice) : dealPrice * 1.2;
         
-        state.finds.unshift(deal);
-        form.innerHTML = orig; renderFeed(); window.closeModals(); window.updateMapMarkers();
-        showNotification("🤖 Deal posted with AI insights!");
-    }, 800);
+        // AI Auto-categorize if no category selected
+        let finalCategory = category;
+        if(!finalCategory || finalCategory === '') {
+            try {
+                finalCategory = await window.autoCategorize(name);
+            } catch(e) { finalCategory = 'other'; }
+        }
+        
+        setTimeout(async () => {
+            const deal = { 
+                id: Date.now(), 
+                user: state.currentUser.name,
+                userId: state.currentUser.id,
+                name, 
+                price: dealPrice, 
+                regularPrice: origPrice,
+                loc: shopName + (unit ? ', ' + unit : ''),
+                locType: locType,
+                shopName: shopName,
+                unit: unit,
+                description: desc,
+                category: finalCategory,
+                img: imageData, 
+                lat: state.userCoords ? state.userCoords.lat : 1.3, 
+                lng: state.userCoords ? state.userCoords.lng : 103.8,
+                timestamp: Date.now()
+            };
+            
+            // AI generate description and tagline
+            try {
+                deal.description = await window.generateDealDescription(name, dealPrice, finalCategory);
+                deal.tagline = await window.generateDealTagline(name, dealPrice, origPrice - dealPrice);
+                deal.bargainScore = await window.getBargainScore(deal);
+            } catch(e) { 
+                deal.description = desc || `Great deal on ${name} at ${shopName}!`;
+                deal.bargainScore = Math.round(((origPrice - dealPrice) / origPrice) * 100);
+            }
+            
+            state.finds.unshift(deal);
+            form.innerHTML = orig; renderFeed(); window.closeModals(); window.updateMapMarkers();
+            showNotification("🤖 Deal posted with AI insights!");
+        }, 800);
+    };
+    reader.readAsDataURL(imageInput.files[0]);
 };
 
 window.closeModals = () => { 
@@ -1128,7 +1180,36 @@ window.sharePulse = () => {
     window.openModal('share-modal');
 };
 
-window.openUpload = () => window.openModal('upload-modal');
+window.openUpload = () => {
+    const loginRequired = get('upload-login-required');
+    const formContainer = get('upload-form-container');
+    
+    if(!state.isLoggedIn) {
+        // Show login required notice
+        if(loginRequired) loginRequired.style.display = 'block';
+        if(formContainer) formContainer.style.display = 'none';
+    } else {
+        // Show upload form
+        if(loginRequired) loginRequired.style.display = 'none';
+        if(formContainer) formContainer.style.display = 'block';
+    }
+    
+    window.openModal('upload-modal');
+};
+
+window.previewImage = (input) => {
+    if(input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('image-preview');
+            if(preview) {
+                preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">`;
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
 window.openAuth = () => window.openModal('auth-modal');
 window.toggleDrawer = () => { 
     const drawer = get('profile-drawer');
