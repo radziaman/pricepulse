@@ -546,6 +546,28 @@ body {
     letter-spacing: 1px;
 }
 
+/* --- PROFILE TABS --- */
+.profile-tab {
+    flex: 1;
+    text-align: center;
+    padding: 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.profile-tab.active {
+    border-bottom-color: var(--accent-lime);
+    color: var(--text-primary);
+}
+
 /* --- TAG STYLES --- */
 .tag {
     display: inline-flex;

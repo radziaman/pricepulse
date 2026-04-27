@@ -57,6 +57,7 @@ export const NOTIFS = [
 ];
 
 export const DEFAULT_USER = {
+    id: 0,
     name: "Guest Hunter",
     bio: "Hunting deals...",
     home: "Singapore",

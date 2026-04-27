@@ -1241,25 +1241,125 @@ function showNotification(msg) {
 
 // --- PROFILE FUNCTIONS ---
 window.openProfile = () => {
-    const nameEl = get('profile-name');
+    if(!state.isLoggedIn) {
+        window.openAuth();
+        showNotification("🔒 Please sign in to view profile", "warning");
+        return;
+    }
+    
+    const user = state.currentUser;
+    const name = user.name || 'Pulse Hunter';
+    const level = getLevelFromXP(user.xp || 0);
+    const xp = user.xp || 0;
+    
+    // Get user's deals
+    const userDeals = state.finds.filter(d => d.userId === user.id);
+    const userLikedDeals = state.finds.filter(d => state.hasLiked(d.id, user.name));
+    const savedDeals = state.finds.filter(d => state.isFavorite(d.id));
+    
+    // Update profile elements
+    const avatarEl = get('profile-avatar');
+    const nameEl = get('profile-username');
     const levelEl = get('profile-level');
-    const dealsEl = get('profile-deals');
-    const followersEl = get('profile-followers');
-    const followingEl = get('profile-following');
-    const initialEl = get('profile-initial');
+    const bioEl = get('profile-bio');
+    const locEl = get('profile-location');
+    const dealsCountEl = get('profile-deals-count');
+    const followersEl = get('profile-followers-count');
+    const followingEl = get('profile-following-count');
+    const editBtn = get('btn-edit-profile');
+    const logoutBtn = get('btn-logout');
     
-    const name = state.user.name || 'Pulse Hunter';
-    const level = getLevelFromXP(state.user.xp || 0);
-    const xp = state.user.xp || 0;
+    if(avatarEl) avatarEl.innerText = name[0].toUpperCase();
+    if(nameEl) nameEl.innerText = name.toUpperCase();
+    if(levelEl) levelEl.innerText = `Level ${level} Hunter • ${xp} XP`;
+    if(bioEl) bioEl.innerText = user.bio || 'No bio yet';
+    if(locEl) locEl.innerText = user.home ? `📍 ${user.home}` : '📍 Not set';
+    if(dealsCountEl) dealsCountEl.innerText = userDeals.length;
+    if(followersEl) followersEl.innerText = user.followers || 0;
+    if(followingEl) followingEl.innerText = user.following || 0;
+    if(editBtn) editBtn.style.display = state.isLoggedIn ? 'block' : 'none';
+    if(logoutBtn) logoutBtn.style.display = state.isLoggedIn ? 'block' : 'none';
     
-    if (nameEl) nameEl.innerText = name;
-    if (levelEl) levelEl.innerText = `Level ${level} • ${xp} XP`;
-    if (dealsEl) dealsEl.innerText = state.user.deals || 0;
-    if (followersEl) followersEl.innerText = state.user.followers || 0;
-    if (followingEl) followingEl.innerText = state.user.following || 0;
-    if (initialEl) initialEl.innerText = name[0];
+    // Default to deals tab
+    window.switchProfileTab('deals');
     
     window.openModal('profile-modal');
+};
+
+window.switchProfileTab = (tab) => {
+    const user = state.currentUser;
+    const userDeals = state.finds.filter(d => d.userId === user.id);
+    const userLikedDeals = state.finds.filter(d => state.hasLiked(d.id, user.name));
+    const savedDeals = state.finds.filter(d => state.isFavorite(d.id));
+    
+    // Update tab styles
+    document.querySelectorAll('.profile-tab').forEach(t => {
+        t.classList.remove('active');
+        if(t.dataset.tab === tab) t.classList.add('active');
+    });
+    
+    // Render content based on tab
+    const content = get('profile-deals-list');
+    const empty = get('profile-empty');
+    
+    let deals = [];
+    let emptyMsg = '';
+    let emptyIcon = '';
+    
+    switch(tab) {
+        case 'deals':
+            deals = userDeals;
+            emptyMsg = 'No deals yet';
+            emptyIcon = '📦';
+            break;
+        case 'liked':
+            deals = userLikedDeals;
+            emptyMsg = 'No liked deals';
+            emptyIcon = '❤️';
+            break;
+        case 'saved':
+            deals = savedDeals;
+            emptyMsg = 'No saved deals';
+            emptyIcon = '🔖';
+            break;
+    }
+    
+    if(content) {
+        if(deals.length === 0) {
+            if(empty) {
+                empty.style.display = 'block';
+                empty.innerHTML = `<div style="font-size: 48px; margin-bottom: 16px;">${emptyIcon}</div><div>${emptyMsg}</div><div style="font-size: 12px; margin-top: 8px;">Share your first deal to get started!</div>`;
+            }
+            content.innerHTML = '';
+        } else {
+            if(empty) empty.style.display = 'none';
+            content.innerHTML = deals.slice(0, 5).map(d => `
+                <div style="display: flex; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 8px;">
+                    <img src="${d.img}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">${d.name}</div>
+                        <div style="color: var(--accent-lime); font-weight: 700;">$${d.price}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">${d.loc || 'Unknown location'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+};
+
+window.openEditProfile = () => {
+    window.closeModals();
+    window.openModal('edit-profile-modal');
+};
+
+window.logout = () => {
+    state.isLoggedIn = false;
+    state.currentUser = { ...DEFAULT_USER };
+    localStorage.removeItem('pulse_auth');
+    localStorage.removeItem('pulse_user');
+    window.closeModals();
+    showNotification("👋 Logged out successfully!");
+    window.renderFeed();
 };
 
 // --- NEW MODAL FUNCTIONS ---
