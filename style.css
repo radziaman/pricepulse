@@ -53,17 +53,21 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 
 /* --- Main Feed Area --- */
 .main-feed {
-    display: block;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    padding: 0;
-    padding-bottom: 80px;
+    display: block !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 300px;
 }
 #feed-container {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
+    min-height: 300px;
+}
+.insta-card {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 .main-feed::-webkit-scrollbar { display: none; }
 
