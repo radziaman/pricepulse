@@ -1,5 +1,6 @@
 // ==========================================
 // PRICEPULSE - GOLD MASTER ENGINE 💎🛰️
+// Social Deals Finder & Hunter App
 // ==========================================
 
 const DATA = [
@@ -11,6 +12,18 @@ const DATA = [
     { id: 6, user: "GadgetGuru", name: "iPhone 15 Pro", price: 1299, loc: "Bugis", category: "electronics", likes: 189, shares: 67, homePrice: 1499, lat: 1.3000, lng: 103.8550, img: "https://images.unsplash.com/photo-1592750475338-f74cc3dbfc52?auto=format&fit=crop&q=80&w=300" },
     { id: 7, user: "SneakerHead", name: "Nike Air Max", price: 159, loc: "Orchard", category: "fashion", likes: 78, shares: 23, homePrice: 199, lat: 1.3048, lng: 103.8318, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=300" },
     { id: 8, user: "HomeChef", name: "KitchenAid Mixer", price: 299, loc: "Jurong", category: "home", likes: 45, shares: 12, homePrice: 399, lat: 1.3300, lng: 103.7200, img: "https://images.unsplash.com/photo-1594385208974-2e75ebe8f9b2?auto=format&fit=crop&q=80&w=300" }
+];
+
+// Sample users for social features
+const USERS = [
+    { id: 1, name: "FoodieKing 🍔", bio: "Foodie Forever", home: "Orchard", xp: 2500, deals: 45, followers: 230, following: 89, badges: ["first Deal", "foodie"] },
+    { id: 2, name: "TechWiz 💻", bio: "Tech hunter", home: "City Hall", xp: 5200, deals: 128, followers: 567, following: 120, badges: ["first Deal", "trending"] },
+    { id: 3, name: "StyleIcon ⌚", bio: "Style scout", home: "Marina Bay", xp: 1800, deals: 34, followers: 189, following: 67, badges: ["first Deal"] },
+    { id: 4, name: "BurgerLover", bio: "Burger enthusiast", home: "Somerset", xp: 950, deals: 12, followers: 45, following: 34, badges: ["newbie"] },
+    { id: 5, name: "CheapEats", bio: "Frugal foodie", home: "Dhoby Ghaut", xp: 1400, deals: 28, followers: 112, following: 56, badges: ["first Deal"] },
+    { id: 6, name: "GadgetGuru", bio: "Gadget deals", home: "Bugis", xp: 3200, deals: 89, followers: 345, following: 90, badges: ["first Deal", "power"] },
+    { id: 7, name: "SneakerHead", bio: "Sneaker scout", home: "Orchard", xp: 2100, deals: 56, followers: 234, following: 78, badges: ["first Deal"] },
+    { id: 8, name: "HomeChef", bio: "Home deals", home: "Jurong", xp: 1200, deals: 23, followers: 89, following: 45, badges: ["first Deal"] }
 ];
 
 const CATEGORIES = [
@@ -26,24 +39,61 @@ const BOUNTIES = [
     { id: 502, requester: "Chef_Ray", item: "Wagyu A5 Ribeye", reward: "1.2k XP", details: "Need a butcher price check in Jurong.", applicants: 5 }
 ];
 
+const ACHIEVEMENTS = [
+    { id: "first_deal", name: "First Pulse", icon: "🎯", desc: "Share your first deal" },
+    { id: "trendsetter", name: "Trendsetter", icon: "🔥", desc: "Get 100 likes on a deal" },
+    { id: "hunter", name: "Pro Hunter", icon: "🎯", desc: "Complete 10 bounties" },
+    { id: "social", name: "Socialite", icon: "💬", desc: "Get 50 followers" },
+    { id: "savers", name: "Community Saver", icon: "💰", desc: "Community saves $10k total" },
+    { id: "streak7", name: "Week Warrior", icon: "⚡", desc: "7 day posting streak" },
+    { id: "foodie", name: "Foodie", icon: "🍔", desc: "Share 10 food deals" },
+    { id: "tech", name: "Tech Scout", icon: "💻", desc: "Share 10 tech deals" }
+];
+
 const NOTIFS = [
     { id: 1, type: 'like', text: 'FoodieKing liked your "Umami Burger" find!', time: '2m ago', icon: 'heart', color: 'var(--accent-pink)' },
     { id: 2, type: 'bounty', text: 'New Bounty: "PS5 Slim" requested near you.', time: '15m ago', icon: 'target', color: 'var(--accent-blue)', targetTab: 'bounties' },
-    { id: 3, type: 'drop', text: 'Price Drop! "Elite Watch" is now $50 cheaper.', time: '1h ago', icon: 'trending-down', color: 'var(--accent-lime)' }
+    { id: 3, type: 'drop', text: 'Price Drop! "Elite Watch" is now $50 cheaper.', time: '1h ago', icon: 'trending-down', color: 'var(--accent-lime)' },
+    { id: 4, type: 'follow', text: 'TechWiz started following you!', time: '1h ago', icon: 'user-plus', color: 'var(--accent-blue)' },
+    { id: 5, type: 'comment', text: 'GadgetGuru commented on your iPhone deal!', time: '30m ago', icon: 'message', color: 'var(--accent-lime)' }
 ];
 
-// Initialize state
+// Comments for deals (stored by deal id)
+let dealComments = {
+    1: [{ user: "BurgerLover", text: "Found this at Somerset! Much cheaper!", time: "2h ago" }],
+    2: [{ user: "TechWiz 💻", text: "Best price in SG right now!", time: "1h ago" }],
+    6: [{ user: "CheapEats", text: "Got mine at Bugis! Same price!", time: "30m ago" }]
+};
+
+// Initialize state with social features
 let state = { 
     finds: [...DATA], 
+    users: [...USERS],
     bounties: [...BOUNTIES],
     notifications: [...NOTIFS],
     acceptedHunts: [],
+    likes: {},
+    following: [],
+    comments: dealComments,
+    xp: 0,
+    streak: 0,
+    lastPostDate: null,
+    achievements: [],
     currentTab: 'deals',
     currentRadius: 10,
     userCoords: null,
     userLocationName: null,
     isLoggedIn: localStorage.getItem('pulse_auth') === 'true',
-    user: JSON.parse(localStorage.getItem('pulse_user')) || { name: "Guest Hunter", bio: "Hunting deals...", home: "Singapore" },
+    user: JSON.parse(localStorage.getItem('pulse_user')) || { 
+        name: "Guest Hunter", 
+        bio: "Hunting deals...", 
+        home: "Singapore",
+        xp: 0,
+        deals: 0,
+        followers: 0,
+        following: 0,
+        badges: []
+    },
     map: null,
     markers: [],
     hasUnreadNotifs: true,
@@ -51,7 +101,9 @@ let state = {
     alerts: JSON.parse(localStorage.getItem('alerts') || '[]'),
     searchQuery: "",
     activeCategory: "all",
-    searchMode: false
+    searchMode: false,
+    activeFilter: "hot",
+    sortBy: "hot"
 };
 
 const get = (id) => document.getElementById(id);
@@ -162,11 +214,13 @@ function getFilteredDeals() {
         deals = deals.filter(d => 
             d.name.toLowerCase().includes(state.searchQuery) ||
             d.loc.toLowerCase().includes(state.searchQuery) ||
-            d.category?.toLowerCase().includes(state.searchQuery)
+            d.category?.toLowerCase().includes(state.searchQuery) ||
+            d.user?.toLowerCase().includes(state.searchQuery)
         );
     }
     
-    return deals;
+    // Sort
+    return getSortedDeals(deals);
 }
 
 // --- FAVORITES ---
@@ -195,6 +249,229 @@ window.showFavorites = () => {
     get('tab-bounties').style.color = 'white';
     renderFeed();
 };
+
+// --- SOCIAL: LIKES ---
+window.toggleLike = (dealId) => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    const deal = state.finds.find(d => d.id === dealId);
+    if (!deal) return;
+    
+    const isLiked = state.likes[dealId]?.includes(state.user.name);
+    
+    if (isLiked) {
+        state.likes[dealId] = state.likes[dealId].filter(u => u !== state.user.name);
+        deal.likes = Math.max(0, (deal.likes || 1) - 1);
+        showNotification("💔 Unliked");
+    } else {
+        if (!state.likes[dealId]) state.likes[dealId] = [];
+        state.likes[dealId].push(state.user.name);
+        deal.likes = (deal.likes || 0) + 1;
+        showNotification("❤️ Liked!");
+        
+        // Award XP
+        addXP(5);
+    }
+    renderFeed();
+};
+
+window.hasLiked = (dealId) => {
+    return state.likes[dealId]?.includes(state.user.name) || false;
+};
+
+// --- SOCIAL: COMMENTS ---
+window.openComments = (dealId) => {
+    state.currentSelectedItem = state.finds.find(d => d.id === dealId);
+    if (!state.currentSelectedItem) return;
+    state.activeDealId = dealId;
+    get('comments-deal-title').innerText = state.currentSelectedItem.name;
+    renderComments(dealId);
+    window.openModal('comments-modal');
+};
+
+function renderComments(dealId) {
+    const comments = state.comments[dealId] || [];
+    const list = get('comments-list');
+    list.innerHTML = '';
+    
+    if (comments.length === 0) {
+        list.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-gray);">No comments yet. Be the first! 💬</p>';
+        return;
+    }
+    
+    comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'action-chip';
+        div.style = 'flex-direction:column;align-items:flex-start;padding:15px;gap:5px;';
+        div.innerHTML = `<div style="font-weight:700;font-size:0.8rem;">@${c.user}</div><div style="font-size:0.9rem;">${c.text}</div><div style="font-size:0.7rem;color:var(--text-gray);">${c.time}</div>`;
+        list.appendChild(div);
+    });
+}
+
+window.postComment = () => {
+    const text = get('comment-input').value.trim();
+    const dealId = state.activeDealId;
+    if (!text || !dealId) return;
+    
+    if (!state.comments[dealId]) state.comments[dealId] = [];
+    state.comments[dealId].unshift({
+        user: state.user.name,
+        text,
+        time: 'Just now'
+    });
+    
+    get('comment-input').value = '';
+    renderComments(dealId);
+    showNotification("💬 Comment posted!");
+    addXP(3);
+};
+
+// --- SOCIAL: FOLLOW ---
+window.followUser = (userName) => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    if (userName === state.user.name) {
+        showNotification("Can't follow yourself!");
+        return;
+    }
+    if (state.following.includes(userName)) {
+        showNotification("Already following!");
+        return;
+    }
+    state.following.push(userName);
+    state.user.following = (state.user.following || 0) + 1;
+    localStorage.setItem('pulse_user', JSON.stringify(state.user));
+    showNotification(`✅ Following @${userName}`);
+    addXP(10);
+};
+
+window.isFollowing = (userName) => {
+    return state.following.includes(userName);
+};
+
+// --- XP & GAMIFICATION ---
+function addXP(amount) {
+    state.user.xp = (state.user.xp || 0) + amount;
+    state.xp = state.user.xp;
+    
+    // Check streak
+    const today = new Date().toDateString();
+    if (state.lastPostDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (state.lastPostDate === yesterday.toDateString()) {
+            state.streak++;
+        } else {
+            state.streak = 1;
+        }
+        state.lastPostDate = today;
+        
+        // Streak achievements
+        if (state.streak >= 7) unlockAchievement('streak7');
+    }
+    
+    // Check level up
+    checkLevelUp();
+    saveUserState();
+    
+    // Update UI
+    updateXPDisplay();
+}
+
+function checkLevelUp() {
+    const level = getLevelFromXP(state.user.xp || 0);
+    const prevLevel = getLevelFromXP((state.user.xp || 0) - 100);
+    if (level > prevLevel) {
+        showNotification(`🎉 Level Up! You're now level ${level}!`);
+    }
+}
+
+function getLevelFromXP(xp) {
+    if (xp >= 5000) return 5;
+    if (xp >= 2500) return 4;
+    if (xp >= 1000) return 3;
+    if (xp >= 500) return 2;
+    return 1;
+}
+
+function getXPForNextLevel() {
+    const level = getLevelFromXP(state.user.xp || 0);
+    const thresholds = [0, 500, 1000, 2500, 5000];
+    const next = thresholds[level] || 5000;
+    return next - (state.user.xp || 0);
+}
+
+function updateXPDisplay() {
+    const xpEl = get('user-xp-display');
+    if (xpEl) {
+        const xp = state.user.xp || 0;
+        const level = getLevelFromXP(xp);
+        xpEl.innerText = `Lv.${level} • ${xp} XP`;
+    }
+}
+
+function unlockAchievement(id) {
+    if (state.achievements.includes(id)) return;
+    state.achievements.push(id);
+    state.user.badges = state.user.badges || [];
+    state.user.badges.push(id);
+    saveUserState();
+    
+    const achievement = ACHIEVEMENTS.find(a => a.id === id);
+    if (achievement) {
+        showNotification(`🏆 Unlocked: ${achievement.icon} ${achievement.name}!`);
+    }
+}
+
+// --- USER STATE ---
+function saveUserState() {
+    localStorage.setItem('pulse_user', JSON.stringify(state.user));
+    localStorage.setItem('pulse_xp', state.xp);
+    localStorage.setItem('pulse_streak', state.streak);
+    localStorage.setItem('pulse_achievements', JSON.stringify(state.achievements));
+    localStorage.setItem('pulse_following', JSON.stringify(state.following));
+}
+
+// --- SORT & FILTER ---
+window.setSortBy = (sort) => {
+    state.sortBy = sort;
+    renderFeed();
+};
+
+window.setFilterBy = (filter) => {
+    state.activeFilter = filter;
+    renderFeed();
+};
+
+function getSortedDeals(deals) {
+    let sorted = [...deals];
+    
+    switch(state.sortBy) {
+        case 'new':
+            sorted.sort((a, b) => b.id - a.id);
+            break;
+        case 'price_low':
+            sorted.sort((a, b) => a.price - b.price);
+            break;
+        case 'price_high':
+            sorted.sort((a, b) => b.price - a.price);
+            break;
+        case 'savings':
+            sorted.sort((a, b) => (b.homePrice - b.price) - (a.homePrice - a.price));
+            break;
+        case 'likes':
+            sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            break;
+        case 'hot':
+        default:
+            // Hot = balanced score
+            sorted.sort((a, b) => {
+                const scoreA = (a.likes || 0) * 2 + (a.homePrice - a.price);
+                const scoreB = (b.likes || 0) * 2 + (b.homePrice - b.price);
+                return scoreB - scoreA;
+            });
+    }
+    
+    return sorted;
+}
 
 // --- DEAL ALERTS ---
 window.createAlert = (itemName) => {
@@ -705,13 +982,14 @@ function renderFeed() {
         const savings = item.homePrice - item.price;
         const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
         const bargainScore = item.bargainScore || Math.min(10, Math.floor(savingsPct / 3) + 5);
+        const hasLiked = window.hasLiked(item.id);
         
         // AI bargain indicator
         const bargainEmoji = bargainScore >= 8 ? '🔥' : bargainScore >= 6 ? '⭐' : '💎';
         
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <div style="display:flex; align-items:center; gap:12px;">
+                <div onclick="window.showUserProfile('${item.user}')" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
                     <div style="width:40px; height:40px; border-radius:12px; background:var(--accent-lime); color:#000; display:flex; align-items:center; justify-content:center; font-weight:900;">${uName[0]}</div>
                     <span style="font-weight:700;">${uName}</span>
                 </div>
@@ -727,13 +1005,14 @@ function renderFeed() {
             ${item.tagline ? `<p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:10px; font-style:italic;">"${item.tagline}"</p>` : ''}
             <img src="${item.img}" class="card-image" onclick="window.showComparison(${item.id})">
             <div style="display:flex; gap:15px; margin:15px 0; font-size:0.8rem; color:var(--text-gray);">
-                <span>❤️ ${item.likes}</span>
-                <span>🔄 ${shares}</span>
+                <span onclick="window.toggleLike(${item.id})" style="cursor:pointer; ${hasLiked ? 'color:var(--accent-pink);' : ''}">${hasLiked ? '❤️' : '🤍'} ${item.likes}</span>
+                <span onclick="window.openComments(${item.id})" style="cursor:pointer;">💬 ${(state.comments[item.id] || []).length}</span>
                 <span onclick="window.createAlert('${item.name}')" style="cursor:pointer; color:var(--accent-lime);">🔔 Alert</span>
             </div>
             <div class="social-bar">
                 <div class="action-chip" style="background:var(--accent-lime); color:#000;" onclick="window.showComparison(${item.id})">RADAR SCAN <i data-lucide="crosshair" size="18"></i></div>
                 <div class="action-chip" onclick="window.sharePulse()"><i data-lucide="share-2" size="18"></i></div>
+                <div class="action-chip" onclick="window.openComments(${item.id})"><i data-lucide="message-circle" size="18"></i></div>
             </div>
         `;
         container.appendChild(card);
@@ -852,6 +1131,49 @@ function showNotification(msg) {
     const n = document.createElement('div'); n.className = 'card'; n.style = 'position:fixed; bottom:120px; left:50%; transform:translateX(-50%); padding:1rem 2rem; border-radius:50px; z-index:9000; background:var(--accent-lime); color:#000; font-weight:900; box-shadow:0 10px 30px rgba(0,0,0,0.5);';
     n.innerText = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
 }
+
+// --- USER PROFILE VIEW ---
+window.showUserProfile = (userName) => {
+    const user = state.users.find(u => u.name === userName) || { name: userName, bio: "Hunter", home: "Singapore", xp: 0, deals: 0, followers: 0, following: 0, badges: [] };
+    const level = getLevelFromXP(user.xp || 0);
+    const isFollowing = window.isFollowing(userName);
+    const dealsByUser = state.finds.filter(d => d.user === userName);
+    
+    get('user-profile-content').innerHTML = `
+        <div style="text-align:center; padding: 20px;">
+            <div style="width:80px; height:80px; border-radius:50%; background:var(--accent-lime); color:#000; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:2rem; margin:0 auto 15px;">${userName[0]}</div>
+            <h2 style="margin-bottom:5px;">${userName}</h2>
+            <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:15px;">${user.bio || 'Hunter'}</p>
+            <p style="color:var(--accent-lime); font-weight:700; margin-bottom:20px;">Lv.${level} • ${user.xp || 0} XP</p>
+            
+            <div style="display:flex; justify-content:center; gap:20px; margin-bottom:20px;">
+                <div style="text-align:center;">
+                    <div style="font-weight:900; font-size:1.2rem;">${dealsByUser.length}</div>
+                    <div style="font-size:0.7rem; color:var(--text-gray);">DEALS</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-weight:900; font-size:1.2rem;">${user.followers || 0}</div>
+                    <div style="font-size:0.7rem; color:var(--text-gray);">FOLLOWERS</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-weight:900; font-size:1.2rem;">${user.following || 0}</div>
+                    <div style="font-size:0.7rem; color:var(--text-gray);">FOLLOWING</div>
+                </div>
+            </div>
+            
+            ${user.badges?.length ? `<div style="display:flex; justify-content:center; gap:5px; margin-bottom:20px; flex-wrap:wrap;">${user.badges.map(b => `<span style="font-size:1.2rem;">${ACHIEVEMENTS.find(a => a.id === b)?.icon || '🏆'}</span>`).join('')}</div>` : ''}
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${isFollowing 
+                    ? `<button class="btn-fun" style="background:rgba(255,255,255,0.1); color:white;">✓ Following</button>`
+                    : `<button class="btn-fun" style="background:var(--accent-lime); color:#000;" onclick="window.followUser('${userName}')">Follow</button>`
+                }
+                <button class="btn-fun" style="background:transparent; color:white; border:1px solid white;" onclick="closeModals()">Close</button>
+            </div>
+        </div>
+    `;
+    window.openModal('user-profile-modal');
+};
 
 // Render categories in sidebar
 function renderCategories() {

@@ -60,6 +60,9 @@
                 <!-- Search Bar -->
                 <div style="margin: 15px 0; display: flex; gap: 10px;">
                     <input type="text" id="search-input" placeholder="Search deals..." oninput="searchDeals(this.value)" style="flex:1; margin:0;">
+                    <div onclick="window.openModal('filter-modal')" style="width:50px; height:50px; border-radius:18px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <i data-lucide="sliders-horizontal" size="20"></i>
+                    </div>
                     <div onclick="showFavorites()" style="width:50px; height:50px; border-radius:18px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; cursor:pointer;">
                         <i data-lucide="heart" size="20"></i>
                     </div>
@@ -347,6 +350,62 @@
                 Finding best deals...
             </div>
             <button class="btn-fun" onclick="closeModals()" style="margin-top: 20px;">Done</button>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="comments-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.5rem;">💬 Comments</h2>
+                <div onclick="closeModals()" style="cursor:pointer;"><i data-lucide="x"></i></div>
+            </div>
+            <p id="comments-deal-title" style="color: var(--accent-lime); font-weight: 700; margin-bottom: 20px;">Deal Name</p>
+            <div id="comments-list" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="comment-input" placeholder="Add a comment..." style="flex:1;">
+                <button class="btn-fun" onclick="postComment()">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="user-profile-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.5rem;">👤 Profile</h2>
+                <div onclick="closeModals()" style="cursor:pointer;"><i data-lucide="x"></i></div>
+            </div>
+            <div id="user-profile-content"></div>
+        </div>
+    </div>
+
+    <!-- Sort/Filter Modal -->
+    <div id="filter-modal" class="modal-overlay">
+        <div class="pop-content" style="max-width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.5rem;">🔍 Filters</h2>
+                <div onclick="closeModals()" style="cursor:pointer;"><i data-lucide="x"></i></div>
+            </div>
+            <p style="font-weight: 700; margin-bottom: 10px;">Sort By</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <div class="action-chip" onclick="setSortBy('hot')" style="text-align: center;">🔥 Hot</div>
+                <div class="action-chip" onclick="setSortBy('new')" style="text-align: center;">🆕 New</div>
+                <div class="action-chip" onclick="setSortBy('price_low')" style="text-align: center;">💵 Low</div>
+                <div class="action-chip" onclick="setSortBy('price_high')" style="text-align: center;">💎 High</div>
+                <div class="action-chip" onclick="setSortBy('savings')" style="text-align: center;">📉 Save</div>
+                <div class="action-chip" onclick="setSortBy('likes')" style="text-align: center;">❤️ Popular</div>
+            </div>
+            <p style="font-weight: 700; margin-bottom: 10px;">Categories</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div class="action-chip" onclick="filterByCategory('all')" style="padding: 8px 12px;">All</div>
+                <div class="action-chip" onclick="filterByCategory('food')" style="padding: 8px 12px;">🍔 Food</div>
+                <div class="action-chip" onclick="filterByCategory('electronics')" style="padding: 8px 12px;">💻 Tech</div>
+                <div class="action-chip" onclick="filterByCategory('fashion')" style="padding: 8px 12px;">⌚ Fashion</div>
+                <div class="action-chip" onclick="filterByCategory('home')" style="padding: 8px 12px;">🏠 Home</div>
+            </div>
+            <button class="btn-fun" onclick="closeModals()" style="margin-top: 20px;">Apply</button>
         </div>
     </div>
 
