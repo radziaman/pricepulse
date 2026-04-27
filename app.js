@@ -1160,26 +1160,6 @@ window.submitForm = async () => {
     reader.readAsDataURL(imageInput.files[0]);
 };
 
-window.closeModals = () => { 
-    document.querySelectorAll('.modal-overlay').forEach(m => {
-        m.style.display = 'none';
-    }); 
-};
-
-window.openModal = (id) => {
-    window.closeModals();
-    const modal = get(id);
-    if (modal) modal.style.display = 'flex';
-};
-
-window.sharePulse = () => {
-    const item = state.currentSelectedItem; if(!item) return;
-    const savings = item.homePrice - item.price;
-    const text = `🚀 Pulse Alert! Found ${item.name} for $${item.price.toLocaleString()} at ${item.loc}! That's $${savings.toFixed(2)} cheaper than home! #PricePulse`;
-    get('share-text').innerText = text; 
-    window.openModal('share-modal');
-};
-
 window.openUpload = () => {
     const loginRequired = get('upload-login-required');
     const formContainer = get('upload-form-container');
@@ -1362,7 +1342,7 @@ window.logout = () => {
     window.renderFeed();
 };
 
-// --- NEW MODAL FUNCTIONS ---
+// --- MODAL FUNCTIONS ---
 window.openModal = (id) => {
     window.closeModals();
     const modal = get(id);
@@ -1376,11 +1356,13 @@ window.closeModal = () => {
     document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
 };
 
-window.closeModals = window.closeModal;
+window.closeModals = () => {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+};
 
 // --- RENDER ACTIVITY ---
 function renderActivity() {
-    const list = get('activity-list');
+    const list = get('activity-content');
     if (!list) return;
     
     list.innerHTML = '';

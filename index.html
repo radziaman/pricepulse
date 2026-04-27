@@ -492,6 +492,110 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">SIGN IN</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content" style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 24px;">JOIN THE HUNT</div>
+                <div class="input-group">
+                    <input type="text" class="input-field" id="auth-username" placeholder="Username">
+                </div>
+                <div class="input-group">
+                    <input type="email" class="input-field" id="auth-email" placeholder="Email">
+                </div>
+                <button class="btn-primary" onclick="window.loginWithEmail()" style="width: 100%; margin-bottom: 12px;">SIGN IN</button>
+                <button class="btn-secondary" onclick="window.loginWithGoogle()" style="width: 100%; margin-bottom: 12px;">Continue with Google</button>
+                <button class="btn-secondary" onclick="window.loginWithApple()" style="width: 100%;">Continue with Apple</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">EDIT PROFILE</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content">
+                <div class="input-group">
+                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Username</label>
+                    <input type="text" class="input-field" id="profile-name" placeholder="Username">
+                </div>
+                <div class="input-group">
+                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Bio</label>
+                    <textarea class="input-field" id="profile-bio" rows="3" placeholder="Tell us about yourself..." style="resize: none;"></textarea>
+                </div>
+                <div class="input-group">
+                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Location</label>
+                    <input type="text" class="input-field" id="profile-home" placeholder="City, Country">
+                </div>
+                <button class="btn-primary" onclick="window.saveProfile()" style="width: 100%;">SAVE CHANGES</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div id="search-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">EXPLORE</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content">
+                <div class="input-group">
+                    <input type="text" class="input-field" id="search-input" placeholder="Search deals, locations..." oninput="window.searchDeals(this.value)">
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activity-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">ACTIVITY</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content" id="activity-content">
+                <!-- Activity items will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Explore Modal -->
+    <div id="explore-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">EXPLORE MAP</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content">
+                <div id="explore-map" style="height: 400px; background: var(--bg-secondary); border-radius: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal-overlay">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-title">SHARE DEAL</div>
+                <div class="modal-close" onclick="window.closeModals()">✕</div>
+            </div>
+            <div class="modal-content">
+                <div id="share-text" style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px;"></div>
+                <button class="btn-primary" onclick="window.copyShareLink()" style="width: 100%;">COPY LINK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
