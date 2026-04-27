@@ -1,29 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --bg-dark: #000000;
-    --bg-card: #121212;
+    --bg-primary: #000000;
     --bg-secondary: #1a1a1a;
-    --accent-lime: #ccff00;
-    --accent-blue: #3d5afe;
-    --accent-pink: #ff4081;
-    --text-white: #ffffff;
-    --text-gray: #8e8e8e;
+    --bg-card: #242424;
+    --bg-hover: #2a2a2a;
+    --accent-nike: #ffffff;
+    --accent-energy: #00f0ff;
+    --accent-fire: #ff4d00;
+    --accent-like: #ff3b5c;
+    --accent-save: #00d26a;
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e8e;
     --text-muted: #525252;
-    --border-color: #2a2a2a;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --radius-full: 50px;
-    --spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
-    
-    --text-xs: 11px;
-    --text-sm: 13px;
-    --text-base: 15px;
-    --text-lg: 17px;
-    --text-xl: 20px;
-    --text-2xl: 24px;
+    --border-color: #333333;
+    --gradient-fire: linear-gradient(135deg, #ff4d00, #ff8800);
+    --gradient-energy: linear-gradient(135deg, #00f0ff, #00ff88);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,119 +23,108 @@
 html { font-size: 16px; }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-white);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    overflow: hidden;
-    height: 100vh;
-    height: 100dvh;
-    width: 100vw;
-    width: 100dvw;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
-h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
-
-/* --- Instagram-Style Layout --- */
-.app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-}
-
-/* --- Main Feed Area --- */
-.main-feed {
-    display: block !important;
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    min-height: 300px;
-}
-#feed-container {
-    display: flex !important;
-    flex-direction: column;
-    min-height: 300px;
-}
-.insta-card {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-.main-feed::-webkit-scrollbar { display: none; }
-
-/* --- Instagram Header --- */
-.insta-header {
-    position: fixed;
+/* --- NIKE-STYLE HEADER --- */
+.nike-header {
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 54px;
-    background: var(--bg-dark);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
     z-index: 100;
+    background: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
+    padding: 0 20px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 56px;
 }
 
 .header-logo {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.5px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fff 0%, #888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
 }
 
-/* --- Bottom Navigation --- */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 54px;
-    background: var(--bg-dark);
+.header-tagline {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.header-actions {
     display: flex;
-    align-items: center;
-    justify-content: space-around;
-    border-top: 1px solid var(--border-color);
-    z-index: 100;
+    gap: 16px;
 }
 
-.nav-item {
+.icon-btn {
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    color: var(--text-white);
-    cursor: pointer;
-    transition: transform 0.2s var(--spring-easing);
-}
-.nav-item:active { transform: scale(0.9); }
-.nav-item.active { color: var(--text-white); }
-.nav-item.inactive { color: var(--text-gray); }
-
-.nav-item.post-btn {
-    width: 42px;
-    height: 42px;
-    background: var(--text-white);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: transform 0.2s;
 }
-.nav-item.post-btn:active { transform: scale(0.95); background: var(--accent-lime); }
+.icon-btn:active { transform: scale(0.9); }
 
-/* --- Instagram Card --- */
-.insta-card {
+/* --- FEED CONTAINER --- */
+.feed-container {
+    padding-bottom: 80px;
+}
+
+/* --- HYBRID CARD DESIGN --- */
+.hybrid-card {
     background: var(--bg-card);
+    margin-bottom: 12px;
     border-radius: 0;
-    margin-bottom: 0;
     overflow: hidden;
 }
 
-.insta-card + .insta-card { margin-top: 12px; }
+.card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
+.badge-hot {
+    background: var(--gradient-fire);
+    color: #fff;
+}
+
+.badge-new {
+    background: var(--gradient-energy);
+    color: #000;
+}
+
+.badge-located {
+    background: rgba(0, 240, 255, 0.2);
+    color: var(--accent-energy);
+    border: 1px solid var(--accent-energy);
+}
+
+/* Card Header - Instagram + Facebook style */
 .card-header {
     display: flex;
     align-items: center;
@@ -151,161 +132,296 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
     gap: 12px;
 }
 
-.card-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, var(--accent-lime), var(--accent-blue));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: #000;
+.card-user-info {
+    flex: 1;
 }
 
 .card-user {
-    font-weight: 600;
-    font-size: 14px;
-    flex: 1;
-    cursor: pointer;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
 }
 
 .card-location {
-    color: var(--text-gray);
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.card-content {
+.card-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-fire), var(--accent-energy));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+}
+
+.card-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.card-menu {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+/* Card Image - Full width like Instagram */
+.card-image-container {
     position: relative;
+    width: 100%;
+    aspect-ratio: 4/5;
+    overflow: hidden;
 }
 
 .card-image {
     width: 100%;
-    aspect-ratio: 4/5;
+    height: 100%;
     object-fit: cover;
-    display: block;
 }
 
-.card-price {
+/* Swarm-style price overlay */
+.card-price-badge {
     position: absolute;
     bottom: 16px;
     left: 16px;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
-    padding: 8px 16px;
-    border-radius: var(--radius-full);
-    font-weight: 800;
-    font-size: 16px;
-}
-
-.card-actions {
+    padding: 10px 18px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
+    gap: 8px;
+}
+
+.price-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--accent-save);
+}
+
+.price-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+/* Swarm-style distance badge */
+.card-distance {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Card Actions - Facebook + Instagram reactions */
+.card-actions {
     padding: 12px 16px;
+    display: flex;
+    align-items: center;
     gap: 16px;
 }
 
 .action-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.15s;
+    padding: 8px;
+    border-radius: 8px;
 }
 .action-btn:active { transform: scale(0.85); }
 
-.action-btn.liked { color: var(--accent-pink); }
+.action-btn.liked { color: var(--accent-like); }
+.action-btn.saved { color: var(--accent-save); }
 
+.action-count {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Facebook-style reactions picker */
+.reaction-bar {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 12px;
+}
+
+.reaction-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    background: var(--bg-secondary);
+    transition: transform 0.2s;
+}
+.reaction-btn:hover { transform: scale(1.2); }
+.reaction-btn:active { transform: scale(0.9); }
+.reaction-btn.active { background: rgba(255, 59, 92, 0.2); }
+
+/* Card Info */
 .card-info {
     padding: 0 16px 16px;
 }
 
 .likes-count {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .deal-caption {
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.5;
     margin-bottom: 8px;
 }
 
 .deal-tagline {
     font-size: 13px;
-    color: var(--text-gray);
+    color: var(--text-secondary);
     font-style: italic;
 }
 
 .view-comments {
     font-size: 14px;
-    color: var(--text-gray);
-    margin-top: 8px;
+    color: var(--text-secondary);
     cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.comments-preview {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border-color);
 }
 
 .time-posted {
-    font-size: 10px;
-    color: var(--text-gray);
+    font-size: 11px;
+    color: var(--text-muted);
     text-transform: uppercase;
-    margin-top: 8px;
 }
 
-/* --- Minimal Input --- */
-.search-bar {
+/* Swarm-style Check-in Button */
+.checkin-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
     background: var(--bg-secondary);
     border: none;
-    border-radius: var(--radius-full);
-    padding: 10px 16px;
-    color: var(--text-white);
-    font-size: 15px;
-    outline: none;
-    width: 100%;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin: 12px 16px;
+    border-radius: 8px;
+}
+.checkin-btn:active { background: var(--bg-hover); }
+
+/* --- BOTTOM NAVIGATION --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
 }
 
-.search-bar::placeholder { color: var(--text-gray); }
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
 
-/* --- Floating Action Button --- */
-.fab {
-    position: fixed;
-    bottom: 74px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    background: var(--accent-lime);
+.nav-item.active { color: var(--text-primary); }
+.nav-item:active { transform: scale(0.9); }
+
+.nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-item.create {
+    width: 52px;
+    height: 52px;
+    background: var(--text-primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    z-index: 90;
-    cursor: pointer;
-    transition: transform 0.2s var(--spring-easing);
+    color: var(--bg-primary);
+    margin-top: -20px;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
 }
-.fab:active { transform: scale(0.9); }
 
-/* --- Clean Modal --- */
+/* --- MODAL SHEETS --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.9);
     z-index: 1000;
     display: none;
     align-items: flex-end;
-    justify-content: center;
 }
 
 .modal-sheet {
     background: var(--bg-card);
     width: 100%;
-    max-width: 500px;
     max-height: 90vh;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    animation: slideUp 0.3s var(--spring-easing);
-    padding: 24px;
+    border-radius: 24px 24px 0 0;
+    animation: slideUp 0.3s ease;
+    overflow-y: auto;
 }
 
 @keyframes slideUp {
@@ -317,53 +433,148 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--bg-card);
 }
 
 .modal-title {
-    font-size: 18px;
-    font-weight: 700;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
 }
 
-.btn-primary {
-    background: var(--accent-lime);
-    color: #000;
-    border: none;
-    padding: 14px 28px;
-    border-radius: var(--radius-full);
-    font-weight: 700;
-    font-size: 15px;
+.modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+/* --- INPUT STYLES --- */
+.input-group {
+    margin-bottom: 16px;
+}
+
+.input-field {
     width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--accent-energy); }
+.input-field::placeholder { color: var(--text-muted); }
+
+/* --- BUTTONS --- */
+.btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
 }
-.btn-primary:active { opacity: 0.8; }
+.btn-primary:active { opacity: 0.9; }
 
-/* --- Full Screen Image --- */
-.full-image-view {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #000;
-    z-index: 2000;
-    display: none;
-}
-.full-image-view img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
-/* Hide old elements */
-.sidebar, .right-sidebar, .mobile-nav { display: none !important; }
-
-/* --- Empty States --- */
+/* --- EMPTY STATE --- */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--text-gray);
+    color: var(--text-secondary);
 }
 
 .empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 64px;
+    margin-bottom: 20px;
     opacity: 0.5;
+}
+
+.empty-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+/* --- PROFILE STATS --- */
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 24px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- TAG STYLES --- */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.tag-category {
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--accent-energy);
+}
+
+.tag-savings {
+    background: var(--gradient-fire);
+    color: #fff;
+}
+
+/* --- NOTIFICATION DOT --- */
+.notif-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-fire);
+    border-radius: 50%;
 }
