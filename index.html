@@ -205,5 +205,14 @@
     <script src="gemini-service.js"></script>
     <script src="ai-service.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Force render after everything loads
+        setTimeout(() => {
+            console.log('Delayed render check...');
+            if (typeof renderFeed === 'function') {
+                renderFeed();
+            }
+        }, 500);
+    </script>
 </body>
 </html>

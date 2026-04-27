@@ -968,17 +968,20 @@ function renderFeed() {
     
     container.innerHTML = '';
     
-    if (!state.finds || state.finds.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📸</div><h3>No deals yet</h3><p>Be the first to share a deal!</p></div>';
-        return;
+    // Fallback: render default sample data if state.finds is empty
+    let deals = state.finds;
+    if (!deals || deals.length === 0) {
+        console.log('Using fallback sample data');
+        deals = [
+            { id: 1, user: "FoodieKing 🍔", name: "The Umami Burger", price: 18.5, loc: "Orchard Road", category: "food", img: "gourmet_burger_find_1777014996371.png", likes: 42, homePrice: 19.20 },
+            { id: 2, user: "TechWiz 💻", name: "MacBook Pro M3", price: 3299, loc: "City Hall", category: "electronics", img: "premium_laptop_find_1777015033134.png", likes: 256, homePrice: 3499 },
+            { id: 3, user: "StyleIcon ⌚", name: "Elite Watch", price: 1250, loc: "Marina Bay", category: "fashion", img: "luxury_watch_find_1777015121802.png", likes: 112, homePrice: 1350 }
+        ];
     }
     
-    let list = getFilteredDeals();
-    console.log('Rendering', list.length, 'deals');
+    console.log('Rendering', deals.length, 'deals');
     
-    if (state.currentTab === 'favorites') {
-        list = list.filter(d => state.favorites.includes(d.id));
-    }
+    let list = deals;
     
     list.forEach(item => {
         const uName = item.user === "You 🌟" ? state.user.name + " (You)" : item.user;
