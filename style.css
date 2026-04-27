@@ -53,11 +53,17 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 
 /* --- Main Feed Area --- */
 .main-feed {
+    display: block;
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
+    padding: 0;
     padding-bottom: 80px;
+}
+#feed-container {
+    display: flex;
+    flex-direction: column;
 }
 .main-feed::-webkit-scrollbar { display: none; }
 
