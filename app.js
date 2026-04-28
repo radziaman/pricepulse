@@ -598,8 +598,14 @@ window.logout = () => {
     if (typeof logoutFirebase === 'function') {
         logoutFirebase();
     } else {
-        localStorage.clear();
-        location.reload();
+        state.isLoggedIn = false;
+        state.currentUser = { id: 0, name: "Guest Hunter", bio: "Hunting deals...", home: "Singapore", xp: 0, deals: 0, followers: 0, following: 0 };
+        state.user = state.currentUser;
+        localStorage.removeItem('pulse_auth');
+        localStorage.removeItem('pulse_user');
+        window.closeModals();
+        showNotification("👋 Logged out successfully!");
+        window.renderFeed();
     }
 };
 
@@ -612,9 +618,14 @@ window.saveProfile = () => {
         state.user.bio = get('profile-bio').value;
         state.user.home = get('profile-home').value;
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
-        updateIdentityUI(); showNotification("✅ Identity Updated!"); renderFeed();
+        window.closeModals();
+        showNotification("✅ Profile Updated!");
+        window.renderFeed();
     }
 };
+
+// Alias for submitDeal -> submitForm
+window.submitDeal = window.submitForm;
 
 window.requestEmailVerification = () => {
     const email = get('auth-email')?.value;
@@ -839,16 +850,6 @@ window.aiChat = async (message) => {
         showNotification("AI chat unavailable");
     }
 };
-
-window.saveProfile = () => {
-    state.user.name = get('profile-name').value;
-    state.user.bio = get('profile-bio').value;
-    state.user.home = get('profile-home').value;
-    localStorage.setItem('pulse_user', JSON.stringify(state.user));
-    updateIdentityUI(); showNotification("✅ Identity Updated!"); renderFeed();
-};
-
-window.logout = () => { localStorage.clear(); location.reload(); };
 
 // --- 4. NOTIFICATION CENTER ---
 
@@ -1332,16 +1333,6 @@ window.openEditProfile = () => {
     window.openModal('edit-profile-modal');
 };
 
-window.logout = () => {
-    state.isLoggedIn = false;
-    state.currentUser = { ...DEFAULT_USER };
-    localStorage.removeItem('pulse_auth');
-    localStorage.removeItem('pulse_user');
-    window.closeModals();
-    showNotification("👋 Logged out successfully!");
-    window.renderFeed();
-};
-
 // --- MODAL FUNCTIONS ---
 window.openModal = (id) => {
     window.closeModals();
@@ -1376,12 +1367,27 @@ function renderActivity() {
             <div style="flex: 1;">
                 <p style="font-size: 14px;">${n.text}</p>
                 <p style="font-size: 12px; color: var(--text-gray);">${n.time}</p>
-            </div>
-        `;
+            </div>`;
         list.appendChild(item);
     });
     lucide.createIcons();
 }
+window.renderActivity = renderActivity;
+
+// Copy share link
+window.copyShareLink = () => {
+    const text = get('share-text')?.innerText || '';
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification("📋 Link copied!");
+    }).catch(() => {
+        showNotification("Failed to copy link");
+    });
+};
+
+// Share deal shortcut
+window.shareDeal = () => {
+    window.sharePulse();
+};
 
 // --- USER PROFILE VIEW ---
 window.showUserProfile = (userName) => {
