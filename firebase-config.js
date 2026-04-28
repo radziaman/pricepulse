@@ -83,7 +83,7 @@ function handleAuthStateChange(user) {
 }
 
 // Login with Google
-async function loginWithGoogleFirebase() {
+window.loginWithGoogleFirebase = async function() {
     if (!firebaseAuth) {
         showNotification("Firebase not ready - try again");
         return;
@@ -99,10 +99,10 @@ async function loginWithGoogleFirebase() {
         console.error('Google login error:', error);
         showNotification("Error: " + error.message);
     }
-}
+};
 
 // Login with Apple
-async function loginWithAppleFirebase() {
+window.loginWithAppleFirebase = async function() {
     if (!firebaseAuth) {
         showNotification("Firebase not ready - try again");
         return;
@@ -118,7 +118,7 @@ async function loginWithAppleFirebase() {
         console.error('Apple login error:', error);
         showNotification("Error: " + error.message);
     }
-}
+};
 
 // Register/Login with Email
 async function loginWithEmailFirebase() {
@@ -250,6 +250,12 @@ window.sendVerificationEmailFirebase = sendVerificationEmailFirebase;
 window.checkEmailVerificationFirebase = checkEmailVerificationFirebase;
 window.logoutFirebase = logoutFirebase;
 window.saveProfileToFirestore = saveProfileToFirestore;
+
+console.log('✅ Firebase functions loaded:', {
+    loginWithGoogleFirebase: typeof window.loginWithGoogleFirebase,
+    loginWithAppleFirebase: typeof window.loginWithAppleFirebase,
+    loginWithEmailFirebase: typeof window.loginWithEmailFirebase
+});
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

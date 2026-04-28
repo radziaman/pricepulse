@@ -484,8 +484,11 @@ window.mockLogin = (method) => {
 
 // Firebase login functions (with fallback to mock)
 window.loginWithGoogle = () => {
-    if (typeof loginWithGoogleFirebase === 'function') {
-        loginWithGoogleFirebase();
+    console.log('Google login clicked, checking firebase...');
+    console.log('loginWithGoogleFirebase type:', typeof window.loginWithGoogleFirebase);
+    
+    if (typeof window.loginWithGoogleFirebase === 'function') {
+        window.loginWithGoogleFirebase();
     } else {
         // Fallback to mock
         showNotification("🔄 Connecting to Google...");
@@ -501,8 +504,11 @@ window.loginWithGoogle = () => {
 };
 
 window.loginWithApple = () => {
-    if (typeof loginWithAppleFirebase === 'function') {
-        loginWithAppleFirebase();
+    console.log('Apple login clicked, checking firebase...');
+    console.log('loginWithAppleFirebase type:', typeof window.loginWithAppleFirebase);
+    
+    if (typeof window.loginWithAppleFirebase === 'function') {
+        window.loginWithAppleFirebase();
     } else {
         // Fallback to mock
         showNotification("🔄 Connecting to Apple...");
