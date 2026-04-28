@@ -40,7 +40,7 @@ async function callAI(prompt, systemPrompt = null) {
     }
 }
 
-function getDemoResponse(prompt) {
+function getDemoResponse() {
     const demos = [
         "Great deal! Historical data shows this is 20-30% below market value. Buy now!",
         "Good price but could drop further. Wait 1-2 weeks for potential sale.",

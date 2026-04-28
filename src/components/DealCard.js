@@ -85,18 +85,18 @@ export function createDealCard(deal, options = {}) {
 
 export function renderDealCard(deal) {
     const card = createDealCard(deal, {
-        onLike: async (id) => {
-            const isLiked = await import('../../services/deals.js').then(m => m.default.like(id));
+        onLike: async () => {
+            const isLiked = await import('../../services/deals.js').then(m => m.default.like(deal.id));
             if (isLiked !== undefined) renderFeed();
         },
-        onComment: (id) => window.openComments?.(id),
-        onShare: (id) => window.sharePulse?.(),
-        onFavorite: async (id) => {
-            await import('../../services/deals.js').then(m => m.default.favorite(id));
+        onComment: () => window.openComments?.(deal.id),
+        onShare: () => window.sharePulse?.(),
+        onFavorite: async () => {
+            await import('../../services/deals.js').then(m => m.default.favorite(deal.id));
             renderFeed();
         },
         onUserClick: (user) => window.showUserProfile?.(user),
-        onImageClick: (id) => window.showComparison?.(id)
+        onImageClick: () => window.showComparison?.(deal.id)
     });
     
     return card;

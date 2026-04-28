@@ -56,11 +56,11 @@ Provide: 1) Is it a good price? 2) What's the estimated value? 3) Buy now or wai
         return result.response.text();
     } catch (error) {
         console.error('AI analysis failed:', error);
-        return getDemoAnalysis(dealName, price, location);
+        return getDemoAnalysis();
     }
 }
 
-function getDemoAnalysis(name, price, location) {
+function getDemoAnalysis() {
     const assessments = [
         "Great price! Historical data suggests this is 20-30% below market value. Buy now!",
         "Good price but could drop further. Wait 1-2 weeks for potential sale.",
@@ -85,7 +85,7 @@ Format as a simple numbered list with deal names and why they're good.`;
 
         const result = await generativeModel.generateContent(prompt);
         return result.response.text();
-    } catch (error) {
+    } catch {
         return getDemoRecommendations();
     }
 }
@@ -112,7 +112,7 @@ Return only exact matches with deal names.`;
 
         const result = await generativeModel.generateContent(prompt);
         return result.response.text();
-    } catch (error) {
+    } catch {
         return filterDealsDemo(query);
     }
 }
@@ -141,7 +141,7 @@ Answer in one word: RISING, STABLE, or DROPPING.`;
 
         const result = await generativeModel.generateContent(prompt);
         return result.response.text();
-    } catch (error) {
+    } catch {
         return '📊 Stable';
     }
 }

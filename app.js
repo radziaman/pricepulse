@@ -3,6 +3,7 @@
 // Social Deals Finder & Hunter App
 // ==========================================
 
+// Use const for data that's never reassigned
 const DATA = [
     { id: 1, user: "FoodieKing 🍔", name: "The Umami Burger", price: 18.5, loc: "Orchard Road", category: "food", img: "gourmet_burger_find_1777014996371.png", likes: 42, shares: 15, homePrice: 19.20, lat: 1.3048, lng: 103.8318 },
     { id: 2, user: "TechWiz 💻", name: "MacBook Pro M3", price: 3299, loc: "City Hall", category: "electronics", img: "premium_laptop_find_1777015033134.png", likes: 256, shares: 89, homePrice: 3499, lat: 1.2931, lng: 103.8522 },
@@ -24,14 +25,6 @@ const USERS = [
     { id: 6, name: "GadgetGuru", bio: "Gadget deals", home: "Bugis", xp: 3200, deals: 89, followers: 345, following: 90, badges: ["first Deal", "power"] },
     { id: 7, name: "SneakerHead", bio: "Sneaker scout", home: "Orchard", xp: 2100, deals: 56, followers: 234, following: 78, badges: ["first Deal"] },
     { id: 8, name: "HomeChef", bio: "Home deals", home: "Jurong", xp: 1200, deals: 23, followers: 89, following: 45, badges: ["first Deal"] }
-];
-
-const CATEGORIES = [
-    { id: "all", name: "All", icon: "grid" },
-    { id: "food", name: "Food 🍔", icon: "utensils" },
-    { id: "electronics", name: "Tech 💻", icon: "laptop" },
-    { id: "fashion", name: "Fashion ⌚", icon: "shirt" },
-    { id: "home", name: "Home 🏠", icon: "home" }
 ];
 
 const BOUNTIES = [
@@ -200,28 +193,6 @@ window.filterByCategory = (cat) => {
     state.activeCategory = cat;
     renderFeed();
 };
-
-function getFilteredDeals() {
-    let deals = [...state.finds];
-    
-    // Filter by category
-    if (state.activeCategory !== "all") {
-        deals = deals.filter(d => d.category === state.activeCategory);
-    }
-    
-    // Filter by search
-    if (state.searchQuery) {
-        deals = deals.filter(d => 
-            d.name.toLowerCase().includes(state.searchQuery) ||
-            d.loc.toLowerCase().includes(state.searchQuery) ||
-            d.category?.toLowerCase().includes(state.searchQuery) ||
-            d.user?.toLowerCase().includes(state.searchQuery)
-        );
-    }
-    
-    // Sort
-    return getSortedDeals(deals);
-}
 
 // --- FAVORITES ---
 window.toggleFavorite = (id) => {
@@ -392,13 +363,6 @@ function getLevelFromXP(xp) {
     return 1;
 }
 
-function getXPForNextLevel() {
-    const level = getLevelFromXP(state.user.xp || 0);
-    const thresholds = [0, 500, 1000, 2500, 5000];
-    const next = thresholds[level] || 5000;
-    return next - (state.user.xp || 0);
-}
-
 function updateXPDisplay() {
     const xpEl = get('user-xp-display');
     if (xpEl) {
@@ -441,38 +405,6 @@ window.setFilterBy = (filter) => {
     renderFeed();
 };
 
-function getSortedDeals(deals) {
-    let sorted = [...deals];
-    
-    switch(state.sortBy) {
-        case 'new':
-            sorted.sort((a, b) => b.id - a.id);
-            break;
-        case 'price_low':
-            sorted.sort((a, b) => a.price - b.price);
-            break;
-        case 'price_high':
-            sorted.sort((a, b) => b.price - a.price);
-            break;
-        case 'savings':
-            sorted.sort((a, b) => (b.homePrice - b.price) - (a.homePrice - a.price));
-            break;
-        case 'likes':
-            sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-            break;
-        case 'hot':
-        default:
-            // Hot = balanced score
-            sorted.sort((a, b) => {
-                const scoreA = (a.likes || 0) * 2 + (a.homePrice - a.price);
-                const scoreB = (b.likes || 0) * 2 + (b.homePrice - b.price);
-                return scoreB - scoreA;
-            });
-    }
-    
-    return sorted;
-}
-
 // --- DEAL ALERTS ---
 window.createAlert = (itemName) => {
     if (!state.isLoggedIn) { window.openAuth(); return; }
@@ -503,7 +435,7 @@ window.checkAlerts = () => {
 };
 
 // --- REPORT ---
-window.reportDeal = (id) => {
+window.reportDeal = () => {
     const reason = prompt("Why are you reporting this deal? (spam/fake/expired)");
     if (reason) {
         showNotification("🚩 Deal reported. Thank you!");
@@ -740,7 +672,7 @@ window.loadDealsFromFirestore = async () => {
             state.finds = [...cloudDeals, ...state.finds];
             renderFeed();
         }
-    } catch(e) {
+    } catch {
         console.log('Using local deals');
     }
 }
@@ -821,7 +753,7 @@ window.analyzeWithAI = async () => {
         const analysis = await window.analyzeDealWithAI(item.name, item.price, item.loc);
         get('ai-analysis-result').innerText = analysis || "Analysis complete!";
         window.openModal('ai-analysis-modal');
-    } catch(e) {
+    } catch {
         showNotification("AI analysis unavailable");
     }
 };
@@ -832,7 +764,7 @@ window.getAIRecs = async () => {
         const recs = await window.getAIRecommendations(state.user);
         get('ai-recs-result').innerText = recs || "Check back soon!";
         window.openModal('ai-recs-modal');
-    } catch(e) {
+    } catch {
         showNotification("AI recommendations unavailable");
     }
 };
@@ -846,7 +778,7 @@ window.aiChat = async (message) => {
         state.aiHistory.push({ role: 'user', content: message });
         state.aiHistory.push({ role: 'assistant', content: reply });
         window.openModal('ai-chat-modal');
-    } catch(e) {
+    } catch {
         showNotification("AI chat unavailable");
     }
 };
@@ -1120,7 +1052,7 @@ window.submitForm = async () => {
         if(!finalCategory || finalCategory === '') {
             try {
                 finalCategory = await window.autoCategorize(name);
-            } catch(e) { finalCategory = 'other'; }
+            } catch { finalCategory = 'other'; }
         }
         
         setTimeout(async () => {
@@ -1148,7 +1080,7 @@ window.submitForm = async () => {
                 deal.description = await window.generateDealDescription(name, dealPrice, finalCategory);
                 deal.tagline = await window.generateDealTagline(name, dealPrice, origPrice - dealPrice);
                 deal.bargainScore = await window.getBargainScore(deal);
-            } catch(e) { 
+            } catch { 
                 deal.description = desc || `Great deal on ${name} at ${shopName}!`;
                 deal.bargainScore = Math.round(((origPrice - dealPrice) / origPrice) * 100);
             }
@@ -1235,8 +1167,6 @@ window.openProfile = () => {
     
     // Get user's deals
     const userDeals = state.finds.filter(d => d.userId === user.id);
-    const userLikedDeals = state.finds.filter(d => state.hasLiked(d.id, user.name));
-    const savedDeals = state.finds.filter(d => state.isFavorite(d.id));
     
     // Update profile elements
     const avatarEl = get('profile-avatar');
@@ -1270,8 +1200,6 @@ window.openProfile = () => {
 window.switchProfileTab = (tab) => {
     const user = state.currentUser;
     const userDeals = state.finds.filter(d => d.userId === user.id);
-    const userLikedDeals = state.finds.filter(d => state.hasLiked(d.id, user.name));
-    const savedDeals = state.finds.filter(d => state.isFavorite(d.id));
     
     // Update tab styles
     document.querySelectorAll('.profile-tab').forEach(t => {
@@ -1431,33 +1359,6 @@ window.showUserProfile = (userName) => {
     `;
     window.openModal('user-profile-modal');
 };
-
-// Render categories in sidebar
-function renderCategories() {
-    console.log("Rendering categories...");
-    
-    // Categories data
-    const categories = [
-        { id: "all", name: "All Deals" },
-        { id: "food", name: "Food 🍔" },
-        { id: "electronics", name: "Tech 💻" },
-        { id: "fashion", name: "Fashion ⌚" },
-        { id: "home", name: "Home 🏠" }
-    ];
-    
-    const container = document.getElementById('categories-sidebar');
-    if (!container) {
-        console.log("categories-sidebar not found");
-        return;
-    }
-    
-    container.innerHTML = categories.map(cat => {
-        const isActive = state.activeCategory === cat.id;
-        return `<div onclick="filterByCategory('${cat.id}')" style="padding:12px 16px; border-radius:15px; background:${isActive ? 'var(--accent-lime)' : 'rgba(255,255,255,0.05)'}; color:${isActive ? '#000' : 'white'}; font-size:0.85rem; font-weight:700; cursor:pointer; text-align:center;">${cat.name}</div>`;
-    }).join('');
-    
-    console.log("Categories rendered:", categories.length);
-}
 
 // --- 9. LIFECYCLE ---
 

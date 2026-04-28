@@ -70,13 +70,13 @@ function handleComment(id) {
     window.openComments?.(id);
 }
 
-function handleShare(id) {
+function handleShare() {
     window.sharePulse?.();
 }
 
-async function handleFavorite(id) {
-    appState.toggleFavorite(id);
-    const isFav = appState.isFavorite(id);
+async function handleFavorite() {
+    appState.toggleFavorite(deal.id);
+    const isFav = appState.isFavorite(deal.id);
     renderFeed();
     window.showNotification?.(isFav ? '🔖 Saved!' : '🔖 Removed');
 }

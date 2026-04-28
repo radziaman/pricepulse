@@ -24,7 +24,6 @@ const firebaseConfig = {
 // Firebase services (initialized after DOM)
 let firebaseAuth = null;
 let db = null;
-let authInitialized = false;
 
 // Initialize Firebase
 function initializeFirebase() {
@@ -36,7 +35,7 @@ function initializeFirebase() {
         }
         
         // Initialize Firebase app
-        const app = firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         
         // Initialize services
         firebaseAuth = firebase.auth();
@@ -95,7 +94,7 @@ async function loginWithGoogleFirebase() {
     
     try {
         showNotification("🔄 Connecting to Google...");
-        const result = await firebaseAuth.signInWithPopup(provider);
+        await firebaseAuth.signInWithPopup(provider);
         showNotification("✅ Logged in with Google!");
     } catch (error) {
         console.error('Google login error:', error);
@@ -113,10 +112,10 @@ async function loginWithAppleFirebase() {
     const provider = new firebase.auth.OAuthProvider('apple.com');
     
     try {
-        showNotification("🔄 Connecting to Apple...");
-        const result = await firebaseAuth.signInWithPopup(provider);
-        showNotification("✅ Logged in with Apple!");
-    } catch (error) {
+        showNotification("🔄 Connecting to Google...");
+        await firebaseAuth.signInWithPopup(provider);
+        showNotification("✅ Logged in with Google!");
+    } catch {
         console.error('Apple login error:', error);
         showNotification("Error: " + error.message);
     }
@@ -146,16 +145,16 @@ async function loginWithEmailFirebase() {
         showNotification("🔄 Creating account...");
         
         // Try to sign in first
-        const result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        await firebaseAuth.signInWithEmailAndPassword(email, password);
         showNotification("✅ Logged in!");
     } catch (signInError) {
         if (signInError.code === 'auth/user-not-found') {
             // User doesn't exist, create new account
             try {
-                const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                await firebaseAuth.createUserWithEmailAndPassword(email, password);
                 
                 // Send verification email
-                await result.user.sendEmailVerification();
+                await firebaseAuth.currentUser.sendEmailVerification();
                 showNotification("📧 Verification email sent!");
                 
                 // Show verification prompt
@@ -188,10 +187,9 @@ async function sendVerificationEmailFirebase() {
 async function checkEmailVerificationFirebase() {
     if (!firebaseAuth?.currentUser) return;
     
-    await firebaseAuth.currentUser.reload();
-    const user = firebaseAuth.currentUser;
+        await firebaseAuth.currentUser.reload();
     
-    if (user.emailVerified) {
+    if (firebaseAuth.currentUser.emailVerified) {
         state.user.emailVerified = true;
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
         closeModals();
@@ -236,8 +234,8 @@ async function saveProfileToFirestore() {
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
         updateIdentityUI();
         showNotification("✅ Profile saved!");
-    } catch (error) {
-        console.error('Profile save error:', error);
+    } catch {
+        console.error('Profile save error');
     }
 }
 
