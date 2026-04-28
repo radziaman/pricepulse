@@ -1197,6 +1197,45 @@ window.openProfile = () => {
     window.openModal('profile-modal');
 };
 
+// Open dashboard (Instagram/LinkedIn style)
+window.openDashboard = (userId) => {
+    const feedContainer = get('feed-container');
+    const bountyContainer = get('bounty-container');
+    const dashboardSection = get('dashboard-section');
+    const header = document.querySelector('header');
+    const nav = document.querySelector('.nav-pills');
+    
+    if (feedContainer) feedContainer.style.display = 'none';
+    if (bountyContainer) bountyContainer.style.display = 'none';
+    if (dashboardSection) dashboardSection.style.display = 'block';
+    if (header) header.style.display = 'none';
+    if (nav) nav.style.display = 'none';
+    
+    // Render dashboard
+    if (window.renderDashboard) {
+        window.renderDashboard(userId || state.user?.id || firebaseService?.currentUser?.uid);
+    }
+};
+
+// Close dashboard
+window.closeDashboard = () => {
+    const feedContainer = get('feed-container');
+    const dashboardSection = get('dashboard-section');
+    const header = document.querySelector('header');
+    const nav = document.querySelector('.nav-pills');
+    
+    if (feedContainer) feedContainer.style.display = 'flex';
+    if (dashboardSection) dashboardSection.style.display = 'none';
+    if (header) header.style.display = '';
+    if (nav) nav.style.display = '';
+    
+    // Restore current tab
+    if (state.currentTab === 'bounties') {
+        if (get('bounty-container')) get('bounty-container').style.display = 'flex';
+        if (feedContainer) feedContainer.style.display = 'none';
+    }
+};
+
 window.switchProfileTab = (tab) => {
     const user = state.currentUser;
     const userDeals = state.finds.filter(d => d.userId === user.id);

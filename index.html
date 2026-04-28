@@ -600,7 +600,51 @@
         </div>
     </div>
 
+    <!-- DASHBOARD SECTION (Instagram/LinkedIn Style) -->
+    <div id="dashboard-section" style="display: none;">
+        <div class="dashboard-header">
+            <div class="header-top">
+                <div class="header-logo">Dashboard</div>
+                <div class="header-actions">
+                    <div class="icon-btn" onclick="window.closeDashboard()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="dashboard-container"></div>
+    </div>
+
     <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Initialize Firebase and Dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Firebase from config
+            if (typeof firebase !== 'undefined') {
+                const firebaseApp = firebase.initializeApp({
+                    apiKey: "AIzaSyBSAfeL0EIwFFvHaTVsJBCBFqwPkHWnTLs",
+                    authDomain: "pricepulse-global.firebaseapp.com",
+                    projectId: "pricepulse-global",
+                    storageBucket: "pricepulse-global.firebasestorage.app",
+                    messagingSenderId: "947199643162",
+                    appId: "1:947199643162:web:c9908bc5dd5b3a0e224ba3"
+                });
+                
+                // Initialize our Firebase service
+                if (window.firebaseService) {
+                    window.firebaseService.init(firebaseApp);
+                }
+            }
+            
+            // Initialize dashboard
+            if (window.initDashboard) {
+                window.initDashboard('#dashboard-container');
+            }
+        });
+    </script>
 </body>
 </html>
