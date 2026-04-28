@@ -4,6 +4,10 @@
 // Handles all Firestore operations for social features
 // Inspired by Instagram, Twitter, LinkedIn dashboards
 
+// Use global firebase object (loaded from CDN)
+const fbAuth = firebase.auth();
+const fbDb = firebase.firestore();
+
 // Firebase collections structure:
 // - users/{userId} : User profiles, stats, preferences
 // - deals/{dealId} : Deal posts with likes, comments, shares
@@ -13,18 +17,15 @@
 
 class FirebaseService {
     constructor() {
-        this.db = null;
-        this.auth = null;
+        this.db = fbDb;
+        this.auth = fbAuth;
         this.currentUser = null;
     }
 
     // Initialize Firebase services
-    init(firebaseApp) {
-        this.db = getFirestore(firebaseApp);
-        this.auth = getAuth(firebaseApp);
-        
+    init() {
         // Listen to auth state
-        onAuthStateChanged(this.auth, (user) => {
+        this.auth.onAuthStateChanged((user) => {
             this.currentUser = user;
         });
     }
@@ -34,10 +35,10 @@ class FirebaseService {
     // Create or update user profile (Instagram-style profile)
     async saveUserProfile(userId, userData) {
         try {
-            const userRef = doc(this.db, 'users', userId);
-            await setDoc(userRef, {
+            const userRef = this.db.collection('users').doc(userId);
+            await userRef.set({
                 ...userData,
-                updatedAt: serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 // Social stats
                 dealsCount: userData.dealsCount || 0,
                 followersCount: userData.followersCount || 0,
@@ -66,9 +67,9 @@ class FirebaseService {
     // Get user profile with stats
     async getUserProfile(userId) {
         try {
-            const userRef = doc(this.db, 'users', userId);
-            const docSnap = await getDoc(userRef);
-            if (docSnap.exists()) {
+            const userRef = this.db.collection('users').doc(userId);
+            const docSnap = await userRef.get();
+            if (docSnap.exists) {
                 return { id: docSnap.id, ...docSnap.data() };
             }
             return null;
@@ -81,14 +82,12 @@ class FirebaseService {
     // Get user's deals (for profile tabs - Instagram style)
     async getUserDeals(userId, limitCount = 20) {
         try {
-            const dealsRef = collection(this.db, 'deals');
-            const q = query(
-                dealsRef,
-                where('userId', '==', userId),
-                orderBy('createdAt', 'desc'),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const dealsRef = this.db.collection('deals');
+            const q = dealsRef
+                .where('userId', '==', userId)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting user deals:', error);
@@ -99,21 +98,19 @@ class FirebaseService {
     // Get user's liked deals
     async getLikedDeals(userId, limitCount = 20) {
         try {
-            const likesRef = collection(this.db, 'likes');
-            const q = query(
-                likesRef,
-                where('userId', '==', userId),
-                orderBy('createdAt', 'desc'),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const likesRef = this.db.collection('likes');
+            const q = likesRef
+                .where('userId', '==', userId)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             const likes = querySnapshot.docs.map(doc => doc.data());
             
             // Fetch actual deals
             const dealPromises = likes.map(like => this.getDeal(like.dealId));
             return (await Promise.all(dealPromises)).filter(deal => deal !== null);
-        } catch (error) {
-            console.error('Error getting liked deals:', error);
+        } catch {
+            console.error('Error getting liked deals');
             return [];
         }
     }
@@ -121,9 +118,9 @@ class FirebaseService {
     // Get user's saved/bookmarked deals
     async getSavedDeals(userId, limitCount = 20) {
         try {
-            const userRef = doc(this.db, 'users', userId);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) return [];
+            const userRef = this.db.collection('users').doc(userId);
+            const userSnap = await userRef.get();
+            if (!userSnap.exists) return [];
             
             const savedIds = userSnap.data().savedDeals || [];
             if (savedIds.length === 0) return [];
@@ -142,10 +139,10 @@ class FirebaseService {
     // Create a new deal (with social metadata)
     async createDeal(dealData) {
         try {
-            const dealsRef = collection(this.db, 'deals');
-            const docRef = await addDoc(dealsRef, {
+            const dealsRef = this.db.collection('deals');
+            const docRef = await dealsRef.add({
                 ...dealData,
-                createdAt: serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 likesCount: 0,
                 commentsCount: 0,
                 sharesCount: 0,
@@ -173,9 +170,9 @@ class FirebaseService {
     // Get a single deal
     async getDeal(dealId) {
         try {
-            const dealRef = doc(this.db, 'deals', dealId);
-            const docSnap = await getDoc(dealRef);
-            if (docSnap.exists()) {
+            const dealRef = this.db.collection('deals').doc(dealId);
+            const docSnap = await dealRef.get();
+            if (docSnap.exists) {
                 return { id: docSnap.id, ...docSnap.data() };
             }
             return null;
@@ -188,7 +185,7 @@ class FirebaseService {
     // Get feed deals (Twitter-style timeline)
     async getFeedDeals(userId = null, limitCount = 50) {
         try {
-            const dealsRef = collection(this.db, 'deals');
+            const dealsRef = this.db.collection('deals');
             let q;
             
             if (userId) {
@@ -197,24 +194,20 @@ class FirebaseService {
                 const followingIds = following.map(u => u.id);
                 followingIds.push(userId); // Include own deals
                 
-                q = query(
-                    dealsRef,
-                    where('userId', 'in', followingIds),
-                    where('isActive', '==', true),
-                    orderBy('createdAt', 'desc'),
-                    limit(limitCount)
-                );
+                q = dealsRef
+                    .where('userId', 'in', followingIds)
+                    .where('isActive', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .limit(limitCount);
             } else {
                 // Public feed
-                q = query(
-                    dealsRef,
-                    where('isActive', '==', true),
-                    orderBy('createdAt', 'desc'),
-                    limit(limitCount)
-                );
+                q = dealsRef
+                    .where('isActive', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .limit(limitCount);
             }
             
-            const querySnapshot = await getDocs(q);
+            const querySnapshot = await q.get();
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting feed deals:', error);
@@ -227,20 +220,20 @@ class FirebaseService {
     // Like/Unlike a deal (Twitter heart style)
     async toggleLike(dealId, userId) {
         try {
-            const likeRef = doc(this.db, 'likes', `${userId}_${dealId}`);
-            const likeSnap = await getDoc(likeRef);
+            const likeRef = this.db.collection('likes').doc(`${userId}_${dealId}`);
+            const likeSnap = await likeRef.get();
             
-            if (likeSnap.exists()) {
+            if (likeSnap.exists) {
                 // Unlike
-                await deleteDoc(likeRef);
+                await likeRef.delete();
                 await this.incrementDealStat(dealId, 'likesCount', -1);
                 return false; // unliked
             } else {
                 // Like
-                await setDoc(likeRef, {
+                await likeRef.set({
                     dealId,
                     userId,
-                    createdAt: serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 await this.incrementDealStat(dealId, 'likesCount', 1);
                 
@@ -267,9 +260,9 @@ class FirebaseService {
     // Check if user liked a deal
     async hasLiked(dealId, userId) {
         try {
-            const likeRef = doc(this.db, 'likes', `${userId}_${dealId}`);
-            const likeSnap = await getDoc(likeRef);
-            return likeSnap.exists();
+            const likeRef = this.db.collection('likes').doc(`${userId}_${dealId}`);
+            const likeSnap = await likeRef.get();
+            return likeSnap.exists;
         } catch {
             return false;
         }
@@ -278,21 +271,21 @@ class FirebaseService {
     // Save/Unsave deal (bookmark)
     async toggleSave(dealId, userId) {
         try {
-            const userRef = doc(this.db, 'users', userId);
-            const userSnap = await getDoc(userRef);
+            const userRef = this.db.collection('users').doc(userId);
+            const userSnap = await userRef.get();
             
-            if (!userSnap.exists()) return false;
+            if (!userSnap.exists) return false;
             
             const savedDeals = userSnap.data().savedDeals || [];
             
             if (savedDeals.includes(dealId)) {
-                await updateDoc(userRef, {
-                    savedDeals: arrayRemove(dealId)
+                await userRef.update({
+                    savedDeals: firebase.firestore.FieldValue.arrayRemove(dealId)
                 });
                 return false; // unsaved
             } else {
-                await updateDoc(userRef, {
-                    savedDeals: arrayUnion(dealId)
+                await userRef.update({
+                    savedDeals: firebase.firestore.FieldValue.arrayUnion(dealId)
                 });
                 return true; // saved
             }
@@ -307,12 +300,12 @@ class FirebaseService {
     // Add comment (Instagram-style)
     async addComment(dealId, userId, text) {
         try {
-            const commentsRef = collection(this.db, 'comments');
-            const docRef = await addDoc(commentsRef, {
+            const commentsRef = this.db.collection('comments');
+            const docRef = await commentsRef.add({
                 dealId,
                 userId,
                 text,
-                createdAt: serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 likes: 0
             });
             
@@ -342,14 +335,12 @@ class FirebaseService {
     // Get comments for a deal
     async getComments(dealId, limitCount = 50) {
         try {
-            const commentsRef = collection(this.db, 'comments');
-            const q = query(
-                commentsRef,
-                where('dealId', '==', dealId),
-                orderBy('createdAt', 'desc'),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const commentsRef = this.db.collection('comments');
+            const q = commentsRef
+                .where('dealId', '==', dealId)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting comments:', error);
@@ -362,21 +353,21 @@ class FirebaseService {
     // Follow/Unfollow user (Twitter/LinkedIn style)
     async toggleFollow(targetUserId, currentUserId) {
         try {
-            const followRef = doc(this.db, 'follows', `${currentUserId}_${targetUserId}`);
-            const followSnap = await getDoc(followRef);
+            const followRef = this.db.collection('follows').doc(`${currentUserId}_${targetUserId}`);
+            const followSnap = await followRef.get();
             
-            if (followSnap.exists()) {
+            if (followSnap.exists) {
                 // Unfollow
-                await deleteDoc(followRef);
+                await followRef.delete();
                 await this.incrementUserStat(targetUserId, 'followersCount', -1);
                 await this.incrementUserStat(currentUserId, 'followingCount', -1);
                 return false; // unfollowed
             } else {
                 // Follow
-                await setDoc(followRef, {
+                await followRef.set({
                     followerId: currentUserId,
                     followingId: targetUserId,
-                    createdAt: serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 await this.incrementUserStat(targetUserId, 'followersCount', 1);
                 await this.incrementUserStat(currentUserId, 'followingCount', 1);
@@ -400,13 +391,11 @@ class FirebaseService {
     // Get followers
     async getFollowers(userId, limitCount = 50) {
         try {
-            const followsRef = collection(this.db, 'follows');
-            const q = query(
-                followsRef,
-                where('followingId', '==', userId),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const followsRef = this.db.collection('follows');
+            const q = followsRef
+                .where('followingId', '==', userId)
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             const followerIds = querySnapshot.docs.map(doc => doc.data().followerId);
             
             // Get user profiles
@@ -421,13 +410,11 @@ class FirebaseService {
     // Get following
     async getFollowing(userId, limitCount = 50) {
         try {
-            const followsRef = collection(this.db, 'follows');
-            const q = query(
-                followsRef,
-                where('followerId', '==', userId),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const followsRef = this.db.collection('follows');
+            const q = followsRef
+                .where('followerId', '==', userId)
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             const followingIds = querySnapshot.docs.map(doc => doc.data().followingId);
             
             // Get user profiles
@@ -444,11 +431,11 @@ class FirebaseService {
     // Add notification (Instagram/Twitter style)
     async addNotification(userId, notification) {
         try {
-            const notifsRef = collection(this.db, 'notifications');
-            await addDoc(notifsRef, {
+            const notifsRef = this.db.collection('notifications');
+            await notifsRef.add({
                 userId,
                 ...notification,
-                createdAt: serverTimestamp()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         } catch (error) {
             console.error('Error adding notification:', error);
@@ -458,14 +445,12 @@ class FirebaseService {
     // Get user notifications
     async getNotifications(userId, limitCount = 50) {
         try {
-            const notifsRef = collection(this.db, 'notifications');
-            const q = query(
-                notifsRef,
-                where('userId', '==', userId),
-                orderBy('createdAt', 'desc'),
-                limit(limitCount)
-            );
-            const querySnapshot = await getDocs(q);
+            const notifsRef = this.db.collection('notifications');
+            const q = notifsRef
+                .where('userId', '==', userId)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount);
+            const querySnapshot = await q.get();
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting notifications:', error);
@@ -476,8 +461,8 @@ class FirebaseService {
     // Mark notification as read
     async markNotificationRead(notificationId) {
         try {
-            const notifRef = doc(this.db, 'notifications', notificationId);
-            await updateDoc(notifRef, { read: true });
+            const notifRef = this.db.collection('notifications').doc(notificationId);
+            await notifRef.update({ read: true });
         } catch (error) {
             console.error('Error marking notification read:', error);
         }
@@ -524,9 +509,9 @@ class FirebaseService {
 
     async incrementUserStat(userId, stat, amount) {
         try {
-            const userRef = doc(this.db, 'users', userId);
-            await updateDoc(userRef, {
-                [stat]: increment(amount)
+            const userRef = this.db.collection('users').doc(userId);
+            await userRef.update({
+                [stat]: firebase.firestore.FieldValue.increment(amount)
             });
         } catch (error) {
             console.error('Error incrementing user stat:', error);
@@ -535,9 +520,9 @@ class FirebaseService {
 
     async incrementDealStat(dealId, stat, amount) {
         try {
-            const dealRef = doc(this.db, 'deals', dealId);
-            await updateDoc(dealRef, {
-                [stat]: increment(amount)
+            const dealRef = this.db.collection('deals').doc(dealId);
+            await dealRef.update({
+                [stat]: firebase.firestore.FieldValue.increment(amount)
             });
         } catch (error) {
             console.error('Error incrementing deal stat:', error);
@@ -548,3 +533,6 @@ class FirebaseService {
 // Export singleton instance
 const firebaseService = new FirebaseService();
 export default firebaseService;
+
+// Make available globally for non-module scripts
+window.firebaseService = firebaseService;

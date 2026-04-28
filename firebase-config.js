@@ -44,7 +44,6 @@ function initializeFirebase() {
         // Enable persistence
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
         
-        authInitialized = true;
         console.log('✅ Firebase initialized with pricepulse-global');
         
         // Set up auth state listener
@@ -112,10 +111,10 @@ async function loginWithAppleFirebase() {
     const provider = new firebase.auth.OAuthProvider('apple.com');
     
     try {
-        showNotification("🔄 Connecting to Google...");
+        showNotification("🔄 Connecting to Apple...");
         await firebaseAuth.signInWithPopup(provider);
-        showNotification("✅ Logged in with Google!");
-    } catch {
+        showNotification("✅ Logged in with Apple!");
+    } catch (error) {
         console.error('Apple login error:', error);
         showNotification("Error: " + error.message);
     }
@@ -145,29 +144,33 @@ async function loginWithEmailFirebase() {
         showNotification("🔄 Creating account...");
         
         // Try to sign in first
-        await firebaseAuth.signInWithEmailAndPassword(email, password);
-        showNotification("✅ Logged in!");
-    } catch (signInError) {
-        if (signInError.code === 'auth/user-not-found') {
-            // User doesn't exist, create new account
-            try {
-                await firebaseAuth.createUserWithEmailAndPassword(email, password);
-                
-                // Send verification email
-                await firebaseAuth.currentUser.sendEmailVerification();
-                showNotification("📧 Verification email sent!");
-                
-                // Show verification prompt
-                get('auth-modal').style.display = 'none';
-                get('verification-prompt-modal').style.display = 'flex';
-            } catch (createError) {
-                showNotification("Error: " + createError.message);
+        try {
+            await firebaseAuth.signInWithEmailAndPassword(email, password);
+            showNotification("✅ Logged in!");
+        } catch (signInError) {
+            if (signInError.code === 'auth/user-not-found') {
+                // User doesn't exist, create new account
+                try {
+                    const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                    
+                    // Send verification email
+                    await result.user.sendEmailVerification();
+                    showNotification("📧 Verification email sent!");
+                    
+                    // Show verification prompt
+                    get('auth-modal').style.display = 'none';
+                    get('verification-prompt-modal').style.display = 'flex';
+                } catch (createError) {
+                    showNotification("Error: " + createError.message);
+                }
+            } else if (signInError.code === 'auth/wrong-password') {
+                showNotification("Incorrect password");
+            } else {
+                showNotification("Error: " + signInError.message);
             }
-        } else if (signInError.code === 'auth/wrong-password') {
-            showNotification("Incorrect password");
-        } else {
-            showNotification("Error: " + signInError.message);
         }
+    } catch (error) {
+        console.error('Login error:', error);
     }
 }
 
@@ -187,7 +190,7 @@ async function sendVerificationEmailFirebase() {
 async function checkEmailVerificationFirebase() {
     if (!firebaseAuth?.currentUser) return;
     
-        await firebaseAuth.currentUser.reload();
+    await firebaseAuth.currentUser.reload();
     
     if (firebaseAuth.currentUser.emailVerified) {
         state.user.emailVerified = true;
@@ -234,8 +237,8 @@ async function saveProfileToFirestore() {
         localStorage.setItem('pulse_user', JSON.stringify(state.user));
         updateIdentityUI();
         showNotification("✅ Profile saved!");
-    } catch {
-        console.error('Profile save error');
+    } catch (error) {
+        console.error('Profile save error:', error);
     }
 }
 
@@ -251,4 +254,9 @@ window.saveProfileToFirestore = saveProfileToFirestore;
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     initializeFirebase();
+    
+    // Initialize Firebase service
+    if (window.firebaseService) {
+        window.firebaseService.init();
+    }
 });
