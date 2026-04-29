@@ -927,44 +927,48 @@ function renderFeed() {
         const savings = item.homePrice - item.price;
         const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
         
-        const card = document.createElement('div');
+<<<<<<< HEAD
+        const card = document.createElement('div'); 
         card.className = 'hybrid-card';
+        card.dataset.dealId = item.id;
         
         card.innerHTML = `
             <div class="card-header">
-                <div class="card-avatar" onclick="window.showUserProfile('${item.user}')">${uName[0]}</div>
-                <div class="card-user" onclick="window.showUserProfile('${item.user}')">${uName}</div>
+                <div class="card-avatar" data-action="show-user-profile" data-user="${item.user}">${uName[0]}</div>
+                <div class="card-user" data-action="show-user-profile" data-user="${item.user}">${uName}</div>
                 <div class="card-location">${item.loc}</div>
             </div>
             
-            <div class="card-content" onclick="window.showComparison(${item.id})">
-                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${item.img}" class="card-image lazy" alt="${item.name}" onload="this.style.opacity=1">
+            <div class="card-content" data-action="show-comparison" data-deal-id="${item.id}">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${item.img}" class="card-image lazy" alt="${item.name}">
                 <div class="card-price">$${item.price.toLocaleString()}</div>
             </div>
             
             <div class="card-actions">
-                <div class="action-btn ${hasLiked ? 'liked' : ''}" onclick="window.toggleLike(${item.id})">
+                <div class="action-btn ${hasLiked ? 'liked' : ''}" data-action="toggle-like" data-deal-id="${item.id}">
                     <i data-lucide="heart" size="26" fill="${hasLiked ? 'var(--accent-pink)' : 'none'}"></i>
+                    <span class="action-count">${item.likes || 0}</span>
                 </div>
-                <div class="action-btn" onclick="window.openComments(${item.id})">
+                <div class="action-btn" data-action="open-comments" data-deal-id="${item.id}">
                     <i data-lucide="message-circle" size="26"></i>
+                    <span class="action-count">${(state.comments[item.id] || []).length}</span>
                 </div>
-                <div class="action-btn" onclick="window.sharePulse()">
+                <div class="action-btn" data-action="share-deal">
                     <i data-lucide="send" size="26"></i>
                 </div>
                 <div style="flex:1;"></div>
-                <div class="action-btn" onclick="window.toggleFavorite(${item.id})">
+                <div class="action-btn ${isFav ? 'saved' : ''}" data-action="toggle-favorite" data-deal-id="${item.id}">
                     <i data-lucide="bookmark" size="26" fill="${isFav ? 'var(--accent-lime)' : 'none'}"></i>
                 </div>
             </div>
             
             <div class="card-info">
-                <div class="likes-count">${item.likes} likes</div>
+                <div class="likes-count">${item.likes || 0} likes</div>
                 <div class="deal-caption">
                     <span style="font-weight: 600;">${uName}</span> ${item.name}
                     ${item.tagline ? `<span class="deal-tagline">"${item.tagline}"</span>` : ''}
                 </div>
-                <div class="view-comments" onclick="window.openComments(${item.id})">
+                <div class="view-comments" data-action="open-comments" data-deal-id="${item.id}">
                     View all ${(state.comments[item.id] || []).length} comments
                 </div>
                 <div class="time-posted">${savingsPct}% OFF</div>
@@ -1304,27 +1308,120 @@ window.switchProfileTab = (tab) => {
 };
 
 window.openEditProfile = () => {
-    window.closeModals();
     window.openModal('edit-profile-modal');
 };
 
-// --- MODAL FUNCTIONS ---
-window.openModal = (id) => {
-    window.closeModals();
-    const modal = get(id);
+// --- MODAL FUNCTIONS (Dynamic Loading) ---
+window.loadModal = (modalName) => {
+    const container = get('modal-container');
+    if (!container || !window.Modals || !window.Modals[modalName]) return;
+    
+    container.innerHTML = window.Modals[modalName]();
+    
+    // Show the modal
+    const modal = container.querySelector('.modal-overlay');
     if (modal) modal.style.display = 'flex';
-    if (id === 'profile-modal') window.openProfile();
-    if (id === 'activity-modal') renderActivity();
-    lucide.createIcons();
+    
+    // Initialize modal-specific logic
+    if (modalName === 'ProfileModal') window.openProfile();
+    if (modalName === 'ActivityModal') renderActivity();
+    
+    // Setup event delegation for this modal
+    setupModalEventDelegation(modal);
+    
+    if (window.lucide) window.lucide.createIcons();
 };
 
-window.closeModal = () => {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+window.openModal = (id) => {
+    window.closeModals();
+    const modalMap = {
+        'upload-modal': 'UploadModal',
+        'profile-modal': 'ProfileModal',
+        'comments-modal': 'CommentsModal',
+        'auth-modal': 'AuthModal',
+        'edit-profile-modal': 'EditProfileModal',
+        'search-modal': 'SearchModal',
+        'activity-modal': 'ActivityModal',
+        'explore-modal': 'ExploreModal',
+        'share-modal': 'ShareModal'
+    };
+    const modalName = modalMap[id];
+    if (modalName) {
+        window.loadModal(modalName);
+    } else {
+        // Fallback for modals not yet converted to dynamic loading
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.style.display = 'flex';
+            if (id === 'profile-modal') window.openProfile();
+            if (id === 'activity-modal') renderActivity();
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
 };
 
 window.closeModals = () => {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    const container = get('modal-container');
+    if (container) container.innerHTML = '';
 };
+
+function setupModalEventDelegation(modal) {
+    if (!modal) return;
+    
+    modal.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        
+        const action = btn.dataset.action;
+        
+        switch(action) {
+            case 'close-modals':
+                window.closeModals();
+                break;
+            case 'close-dashboard':
+                window.closeDashboard();
+                break;
+            case 'open-auth':
+                window.closeModals();
+                window.openAuth();
+                break;
+            case 'submit-deal':
+                window.submitDeal();
+                break;
+            case 'edit-profile':
+                window.openEditProfile();
+                break;
+            case 'logout':
+                window.logout();
+                break;
+            case 'save-profile':
+                window.saveProfile();
+                break;
+            case 'login-email':
+                window.loginWithEmailWrapper();
+                break;
+            case 'login-google':
+                window.loginWithGoogle();
+                break;
+            case 'login-apple':
+                window.loginWithApple();
+                break;
+            case 'trigger-image-upload':
+                document.getElementById('inp-image')?.click();
+                break;
+            case 'post-comment':
+                // Handle comment posting
+                break;
+            case 'copy-share-link':
+                window.copyShareLink();
+                break;
+            case 'switch-profile-tab':
+                const tab = btn.dataset.tab;
+                if (tab) window.switchProfileTab(tab);
+                break;
+        }
+    });
+}
 
 // --- RENDER ACTIVITY ---
 async function renderActivity() {
@@ -1488,7 +1585,7 @@ window.showUserProfile = (userName) => {
 };
 
 // --- 9. LIFECYCLE ---
-
+    
 document.addEventListener('DOMContentLoaded', () => { 
     console.log('PricePulse loading...');
     console.log('State finds:', state.finds?.length);
@@ -1501,6 +1598,112 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize lazy loading
     if (typeof initLazyLoading === 'function') {
         initLazyLoading();
+    }
+    
+    // Setup event delegation for feed container
+    const feedContainer = get('feed-container');
+    if (feedContainer) {
+        feedContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            
+            const action = btn.dataset.action;
+            const dealId = btn.dataset.dealId;
+            const userId = btn.dataset.user;
+            
+            switch(action) {
+                case 'toggle-like':
+                    if (dealId) window.toggleLike(parseInt(dealId));
+                    break;
+                case 'open-comments':
+                    if (dealId) window.openComments(parseInt(dealId));
+                    break;
+                case 'share-deal':
+                    window.sharePulse();
+                    break;
+                case 'toggle-favorite':
+                    if (dealId) window.toggleFavorite(parseInt(dealId));
+                    break;
+                case 'show-comparison':
+                    if (dealId) window.showComparison(parseInt(dealId));
+                    break;
+                case 'show-user-profile':
+                    if (userId) window.showUserProfile(userId);
+                    break;
+            }
+        });
+    }
+    
+    // Setup event delegation for header actions
+    const headerActions = get('header-actions');
+    if (headerActions) {
+        headerActions.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            
+            const action = btn.dataset.action;
+            switch(action) {
+                case 'search':
+                    window.openModal('search-modal');
+                    break;
+                case 'activity':
+                    window.openModal('activity-modal');
+                    break;
+                case 'profile':
+                    if (state.isLoggedIn) {
+                        window.openModal('profile-modal');
+                    } else {
+                        window.openAuth();
+                    }
+                    break;
+            }
+        });
+    }
+    
+    // Setup event delegation for bottom nav
+    const bottomNav = get('bottom-nav');
+    if (bottomNav) {
+        bottomNav.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            
+            const action = btn.dataset.action;
+            
+            // Update active state
+            bottomNav.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            btn.classList.add('active');
+            
+            switch(action) {
+                case 'home':
+                    const feedContainer = get('feed-container');
+                    const bountyContainer = get('bounty-container');
+                    const dashboardSection = get('dashboard-section');
+                    if (feedContainer) feedContainer.style.display = 'block';
+                    if (bountyContainer) bountyContainer.style.display = 'none';
+                    if (dashboardSection) dashboardSection.style.display = 'none';
+                    break;
+                case 'explore':
+                    window.openModal('explore-modal');
+                    break;
+                case 'upload':
+                    if (state.isLoggedIn) {
+                        window.openModal('upload-modal');
+                    } else {
+                        window.openAuth();
+                    }
+                    break;
+                case 'activity':
+                    window.openModal('activity-modal');
+                    break;
+                case 'profile':
+                    if (state.isLoggedIn) {
+                        window.openModal('profile-modal');
+                    } else {
+                        window.openAuth();
+                    }
+                    break;
+            }
+        });
     }
     
     // Request real GPS location

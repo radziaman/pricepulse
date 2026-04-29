@@ -1,6 +1,30 @@
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  plugins: [
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'PricePulse',
+        short_name: 'PricePulse',
+        description: 'Social price comparison platform',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ],
   root: '.',
   build: {
     outDir: 'dist',
@@ -14,9 +38,13 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          lucide: ['lucide'],
+        manualChunks: (id) => {
+          if (id.includes('firebase/app') || id.includes('firebase/auth') || id.includes('firebase/firestore')) {
+            return 'vendor';
+          }
+          if (id.includes('lucide')) {
+            return 'lucide';
+          }
         },
       },
     },

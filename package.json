@@ -17,9 +17,9 @@
     "eslint": "^10.2.1",
     "globals": "^17.5.0",
     "jsdom": "^29.1.0",
-    "vitest": "^4.1.5",
-    "vite": "^6.0.0",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite": "^8.0.10",
+    "vite-plugin-pwa": "^0.19.8",
+    "vitest": "^4.1.5"
   },
   "keywords": [
     "price",

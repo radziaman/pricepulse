@@ -8,14 +8,6 @@
     
     // Web Vitals tracking (like Meta's performance monitoring)
     function sendToAnalytics(metric) {
-        const body = JSON.stringify({
-            name: metric.name,
-            value: metric.value,
-            id: metric.id,
-            page: window.location.pathname,
-            timestamp: Date.now()
-        });
-        
         // Send to Firebase Analytics if available, otherwise console
         if (typeof gtag !== 'undefined') {
             gtag('event', 'web_vitals', {
@@ -73,7 +65,7 @@
                 });
             });
             observer.observe({ entryTypes: ['longtask'] });
-        } catch (_e) {
+        } catch {
             console.warn('PerformanceObserver not supported');
         }
     }

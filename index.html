@@ -27,19 +27,19 @@
                 <div class="header-logo">PricePulse</div>
                 <div class="header-tagline">Find. Share. Save.</div>
             </div>
-            <div class="header-actions">
-                <div class="icon-btn" onclick="window.openModal('search-modal')">
+            <div class="header-actions" id="header-actions">
+                <div class="icon-btn" data-action="search" title="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                     </svg>
                 </div>
-                <div class="icon-btn" onclick="window.openModal('activity-modal')" style="position:relative;">
+                <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                     </svg>
-                    <span class="notif-dot"></span>
+                    <span class="notif-dot" id="notif-dot"></span>
                 </div>
-                <div class="icon-btn" onclick="window.openProfile()">
+                <div class="icon-btn" data-action="profile" title="Profile">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                     </svg>
@@ -48,345 +48,71 @@
         </div>
     </header>
 
-    <!-- FEED CONTAINER - Cards rendered dynamically by app.js -->
-    <div class="feed-container" id="feed-container"></div>
+     <!-- FEED CONTAINER -->
+     <div class="feed-container" id="feed-container">
+         <!-- Feed will be rendered here by JavaScript -->
+     </div>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="bottom-nav">
-        <div class="nav-item active">
+    <nav class="bottom-nav" id="bottom-nav">
+        <div class="nav-item active" data-action="home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <span class="nav-label">Home</span>
         </div>
-        <div class="nav-item" onclick="window.openModal('explore-modal')">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.24 10.24 15.24 7.24 15.24 7.24 12.24"/></svg>
+        <div class="nav-item" data-action="explore">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.24 10.24 15.24 7.24 15.24"/></svg>
             <span class="nav-label">Explore</span>
         </div>
-        <div class="nav-item create" onclick="window.openModal('upload-modal')">
+        <div class="nav-item create" data-action="upload">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6M13 19V5l7 7-7 7z" transform="rotate(180 12 12)"/></svg>
         </div>
-        <div class="nav-item" onclick="window.openModal('activity-modal')">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="nav-item" data-action="activity">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
             <span class="nav-label">Activity</span>
         </div>
-        <div class="nav-item" onclick="window.openProfile()">
+        <div class="nav-item" data-action="profile">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span class="nav-label">Profile</span>
         </div>
     </nav>
 
-    <!-- MODALS -->
-    
-    <!-- Upload Modal - Requires Registration -->
-    <div id="upload-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">SHARE A DEAL</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                
-                <!-- Login Required Notice -->
-                <div id="upload-login-required" style="display: none; text-align: center; padding: 20px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
-                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 12px;">LOGIN REQUIRED</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Sign in to share deals with the community</p>
-                    <button class="btn-primary" onclick="window.closeModals(); window.openAuth();">SIGN IN TO SHARE</button>
-                </div>
-                
-                <!-- Upload Form -->
-                <div id="upload-form-container">
-                    <!-- Image Upload -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📷 Product Photo *</label>
-                        <div style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer;" onclick="document.getElementById('inp-image').click()">
-                            <input type="file" id="inp-image" accept="image/*" style="display: none;" onchange="previewImage(this)">
-                            <div id="image-preview">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; display: block; color: var(--text-secondary);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                <div style="color: var(--text-secondary);">Tap to upload photo</div>
-                            </div>
-                        </div>
+    <!-- Modal Container - Modals will be injected here dynamically -->
+    <div id="modal-container"></div>
+
+<<<<<<< HEAD
+=======
+    <!-- DASHBOARD SECTION (Instagram/LinkedIn Style) -->
+    <div id="dashboard-section" style="display: none;">
+        <div class="dashboard-header">
+            <div class="header-top">
+                <div class="header-logo">Dashboard</div>
+                <div class="header-actions">
+                    <div class="icon-btn" data-action="close-dashboard">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
                     </div>
-                    
-                    <!-- Product Name -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📦 Product Name *</label>
-                        <input type="text" class="input-field" id="inp-name" placeholder="e.g., iPhone 15 Pro, Nike Air Max">
-                    </div>
-                    
-                    <!-- Price -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">💰 Current Price *</label>
-                        <input type="number" class="input-field" id="inp-price" placeholder="0.00">
-                    </div>
-                    
-                    <!-- Regular Price -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🏷️ Regular Price (Original)</label>
-                        <input type="number" class="input-field" id="inp-regular-price" placeholder="0.00">
-                    </div>
-                    
-                    <!-- Location Type -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📍 Location Type *</label>
-                        <select class="input-field" id="inp-loc-type" style="appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238e8e8e8%22%20stroke-width%3D%222%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
-                            <option value="">Select location type...</option>
-                            <option value="mall">🛒 Shopping Mall</option>
-                            <option value="store">🏪 Retail Store</option>
-                            <option value="restaurant">🍔 Restaurant / Food Court</option>
-                            <option value="cafe">☕ Cafe / Coffee Shop</option>
-                            <option value="street">🚶 Street Vendor / Hawker</option>
-                            <option value="online">🌐 Online Store</option>
-                            <option value="outlet">🏷️ Outlet / Warehouse</option>
-                            <option value="other">📍 Other</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Exact Location -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🏢 Shop / Mall Name *</label>
-                        <input type="text" class="input-field" id="inp-shop-name" placeholder="e.g., Orchard Gateway, FairPrice, McDonald's">
-                    </div>
-                    
-                    <!-- Floor/Unit -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📍 Floor / Unit Number</label>
-                        <input type="text" class="input-field" id="inp-unit" placeholder="e.g., B1-23, Level 2, Counter 5">
-                    </div>
-                    
-                    <!-- Description -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📝 Description (Optional)</label>
-                        <textarea class="input-field" id="inp-desc" rows="3" placeholder="Tell us more about this deal..." style="resize: none;"></textarea>
-                    </div>
-                    
-                    <!-- Category -->
-                    <div class="input-group">
-                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🏷️ Category *</label>
-                        <select class="input-field" id="inp-category" style="appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238e8e8e8%22%20stroke-width%3D%222%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
-                            <option value="">Select category...</option>
-                            <option value="food">🍔 Food & Drinks</option>
-                            <option value="electronics">💻 Electronics</option>
-                            <option value="fashion">👗 Fashion</option>
-                            <option value="beauty">💄 Beauty</option>
-                            <option value="home">🏠 Home & Living</option>
-                            <option value="sports">⚽ Sports</option>
-                            <option value="toys">🎮 Toys & Games</option>
-                            <option value="books">📚 Books</option>
-                            <option value="other">📦 Other</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn-primary" onclick="window.submitDeal()">SHARE DEAL</button>
                 </div>
             </div>
         </div>
+        <div id="dashboard-container"></div>
     </div>
 
-    <div id="profile-modal" class="modal-overlay">
-        <div class="modal-sheet" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-                <div class="modal-title">PROFILE</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div id="profile-content" style="padding: 20px;">
-                <!-- Profile Header -->
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <div id="profile-avatar" class="card-avatar" style="width: 100px; height: 100px; font-size: 40px; margin: 0 auto 16px; border: 3px solid var(--accent-lime);">P</div>
-                    <div id="profile-username" style="font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px;">PULSE HUNTER</div>
-                    <div id="profile-level" style="color: var(--accent-energy); font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Level 1 Hunter • 0 XP</div>
-                    <div id="profile-bio" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">No bio yet</div>
-                    <div id="profile-location" style="color: var(--text-secondary); font-size: 12px;">📍 Not set</div>
-                </div>
-                
-                <!-- Stats Row -->
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <div id="profile-deals-count" class="stat-value">0</div>
-                        <div class="stat-label">Deals</div>
-                    </div>
-                    <div class="stat-item">
-                        <div id="profile-followers-count" class="stat-value">0</div>
-                        <div class="stat-label">Followers</div>
-                    </div>
-                    <div class="stat-item">
-                        <div id="profile-following-count" class="stat-value">0</div>
-                        <div class="stat-label">Following</div>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
-                    <button id="btn-edit-profile" class="btn-primary" style="flex:1;" onclick="window.openEditProfile()">Edit Profile</button>
-                    <button id="btn-logout" class="btn-secondary" style="flex:1;" onclick="window.logout()">Logout</button>
-                </div>
-                
-                <!-- Activity Tabs -->
-                <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-top: 24px;">
-                    <div class="profile-tab active" data-tab="deals" onclick="window.switchProfileTab('deals')">
-                        <span style="font-size: 20px;">📦</span> My Deals
-                    </div>
-                    <div class="profile-tab" data-tab="liked" onclick="window.switchProfileTab('liked')">
-                        <span style="font-size: 20px;">❤️</span> Liked
-                    </div>
-                    <div class="profile-tab" data-tab="saved" onclick="window.switchProfileTab('saved')">
-                        <span style="font-size: 20px;">🔖</span> Saved
-                    </div>
-                </div>
-                
-                <!-- Activity Content -->
-                <div id="profile-activity" style="padding: 16px 0;">
-                    <div id="profile-empty" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
-                        <div>No deals yet</div>
-                        <div style="font-size: 12px; margin-top: 8px;">Share your first deal to get started!</div>
-                    </div>
-                    <div id="profile-deals-list"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Component Scripts -->
+    <script type="module" src="js/components/upload-modal.js"></script>
+    <script type="module" src="js/components/profile-modal.js"></script>
+    <script type="module" src="js/components/comments-modal.js"></script>
+    <script type="module" src="js/components/auth-modal.js"></script>
+    <script type="module" src="js/components/edit-profile-modal.js"></script>
+    <script type="module" src="js/components/search-modal.js"></script>
+    <script type="module" src="js/components/activity-modal.js"></script>
+    <script type="module" src="js/components/explore-modal.js"></script>
+    <script type="module" src="js/components/share-modal.js"></script>
 
-    <div id="comments-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">COMMENTS</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: 14px; margin-bottom: 12px;">
-                        <span style="font-weight: 700;">BurgerLover</span> Found this at Somerset! Much cheaper!
-                    </div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">2h ago</div>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: 14px; margin-bottom: 12px;">
-                        <span style="font-weight: 700;">CheapEats</span> Same price at Dhoby Ghaut 🍔
-                    </div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">3h ago</div>
-                </div>
-                <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-                    <input type="text" class="input-field" placeholder="Add a comment..." style="flex:1; margin:0;">
-                    <button class="btn-primary" style="width: auto; padding: 12px 20px;">Post</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">SIGN IN</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content" style="text-align: center;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
-                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 24px;">JOIN THE HUNT</div>
-                <div class="input-group">
-                    <input type="email" class="input-field" id="auth-email" placeholder="Email">
-                </div>
-                <div class="input-group">
-                    <input type="password" class="input-field" id="auth-password" placeholder="Password" autocomplete="current-password">
-                </div>
-                <button class="btn-primary" onclick="window.loginWithEmailWrapper()" style="width: 100%; margin-bottom: 16px; padding: 16px; font-size: 16px;">SIGN IN / REGISTER</button>
-                <button class="btn-google" onclick="window.loginWithGoogle()" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; background: #fff; color: #000; border: none; border-radius: 24px; font-weight: 700; cursor: pointer;">
-                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.56c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.62l-3.56-2.77c-.98.66-2.23 1.05-3.72 1.05-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.97 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.13c-.22-.66-.35-1.37-.35-2.13s.13-1.47.35-2.13V7.03H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 5.03l2.66-2.06z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.2 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.97 3.47 2.18 7.03l3.66 2.84c.87-2.6 3.3-4.49 6.16-4.49z" fill="#EA4335"/></svg>
-                    Continue with Google
-                </button>
-                <button class="btn-apple" onclick="window.loginWithApple()" style="width: 100%; padding: 16px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; background: #000; color: #fff; border: none; border-radius: 24px; font-weight: 700; cursor: pointer;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.01-1.09-.8-2.07-.82-3.08 0-1.23 1.24-2.9 1.02-3.08-.01-1.22 1.24-2.9.99-3.08 0-.16 1.56.99 2.96 3.08 3.08 1.12.12 2.3-.99 3.08-3.08.18-1.01 1.56-.99 3.08 0 .18 1.56.99 2.96 3.08 3.08 1.12.12 2.3-.99 3.08-3.08zM12 13.97c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
-                    Continue with Apple
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">EDIT PROFILE</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                <div class="input-group">
-                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Username</label>
-                    <input type="text" class="input-field" id="profile-name" placeholder="Username">
-                </div>
-                <div class="input-group">
-                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Bio</label>
-                    <textarea class="input-field" id="profile-bio" rows="3" placeholder="Tell us about yourself..." style="resize: none;"></textarea>
-                </div>
-                <div class="input-group">
-                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Location</label>
-                    <input type="text" class="input-field" id="profile-home" placeholder="City, Country">
-                </div>
-                <button class="btn-primary" onclick="window.saveProfile()" style="width: 100%;">SAVE CHANGES</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search Modal -->
-    <div id="search-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">EXPLORE</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                <div class="input-group">
-                    <input type="text" class="input-field" id="search-input" placeholder="Search deals, locations..." oninput="window.searchDeals(this.value)">
-                </div>
-                <div id="search-results"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Activity Modal -->
-    <div id="activity-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">ACTIVITY</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content" id="activity-content">
-                <!-- Activity items will be rendered here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Explore Modal -->
-    <div id="explore-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">EXPLORE MAP</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                <div id="explore-map" style="height: 400px; background: var(--bg-secondary); border-radius: 12px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Share Modal -->
-    <div id="share-modal" class="modal-overlay">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <div class="modal-title">SHARE DEAL</div>
-                <div class="modal-close" onclick="window.closeModals()">✕</div>
-            </div>
-            <div class="modal-content">
-                <div id="share-text" style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px;"></div>
-                <button class="btn-primary" onclick="window.copyShareLink()" style="width: 100%;">COPY LINK</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="firebase-config.js"></script>
-    <script src="firebase-service.js"></script>
-    <script src="app.js"></script>
-    <script src="monitoring.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="firebase-service.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="monitoring.js"></script>
     <script>
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {

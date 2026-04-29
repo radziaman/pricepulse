@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PricePulse | Find. Share. Save.</title>
+    <link rel="manifest" href="/assets/manifest-jMh0sbiX.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="PricePulse - Find, share, and save on the best deals near you. Social deal sharing platform.">
+    <meta property="og:title" content="PricePulse | Find. Share. Save.">
+    <meta property="og:description" content="Join the community hunting the best deals in Singapore!">
+    <meta property="og:type" content="website">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+  <script type="module" crossorigin src="/assets/index-D7_7YYSD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DkkIAuD-.css">
+<link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+<body>
+    <!-- NIKE-STYLE HEADER -->
+    <header class="nike-header">
+        <div class="header-top">
+            <div>
+                <div class="header-logo">PricePulse</div>
+                <div class="header-tagline">Find. Share. Save.</div>
+            </div>
+            <div class="header-actions" id="header-actions">
+                <div class="icon-btn" data-action="search" title="Search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <span class="notif-dot" id="notif-dot"></span>
+                </div>
+                <div class="icon-btn" data-action="profile" title="Profile">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FEED CONTAINER -->
+    <div class="feed-container" id="feed-container">
+        <!-- Feed will be rendered here by JavaScript -->
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <div class="nav-item active" data-action="home">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" data-action="explore">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.24 10.24 15.24 7.24 15.24"/></svg>
+            <span class="nav-label">Explore</span>
+        </div>
+        <div class="nav-item create" data-action="upload">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6M13 19V5l7 7-7 7z" transform="rotate(180 12 12)"/></svg>
+        </div>
+        <div class="nav-item" data-action="activity">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span class="nav-label">Activity</span>
+        </div>
+        <div class="nav-item" data-action="profile">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-label">Profile</span>
+        </div>
+    </nav>
+
+    <!-- Modal Container - Modals will be injected here dynamically -->
+    <div id="modal-container"></div>
+
+    <!-- DASHBOARD SECTION (Instagram/LinkedIn Style) -->
+    <div id="dashboard-section" style="display: none;">
+        <div class="dashboard-header">
+            <div class="header-top">
+                <div class="header-logo">Dashboard</div>
+                <div class="header-actions">
+                    <div class="icon-btn" data-action="close-dashboard">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="dashboard-container"></div>
+    </div>
+
+    <!-- Component Scripts -->
+
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
