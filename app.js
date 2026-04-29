@@ -929,8 +929,8 @@ function renderFeed() {
         const savings = item.homePrice - item.price;
         const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
         
-        const card = document.createElement('div'); 
-        card.className = 'insta-card';
+        const card = document.createElement('div');
+        card.className = 'hybrid-card';
         
         card.innerHTML = `
             <div class="card-header">
@@ -1203,24 +1203,10 @@ window.openProfile = () => {
     window.openModal('profile-modal');
 };
 
-// Open dashboard (Instagram/LinkedIn style)
+// Open dashboard (simplified - redirects to profile)
 window.openDashboard = (userId) => {
-    const feedContainer = get('feed-container');
-    const bountyContainer = get('bounty-container');
-    const dashboardSection = get('dashboard-section');
-    const header = document.querySelector('header');
-    const nav = document.querySelector('.nav-pills');
-    
-    if (feedContainer) feedContainer.style.display = 'none';
-    if (bountyContainer) bountyContainer.style.display = 'none';
-    if (dashboardSection) dashboardSection.style.display = 'block';
-    if (header) header.style.display = 'none';
-    if (nav) nav.style.display = 'none';
-    
-    // Render dashboard
-    if (window.renderDashboard) {
-        window.renderDashboard(userId || state.user?.id || firebaseService?.currentUser?.uid);
-    }
+    showNotification("📊 Dashboard coming soon! Opening profile...");
+    window.openProfile();
 };
 
 // Close dashboard
@@ -1358,6 +1344,23 @@ window.copyShareLink = () => {
 };
 
 // Share deal shortcut
+window.sharePulse = () => {
+    const text = "Check out this deal on PricePulse! 🎯";
+    if (navigator.share) {
+        navigator.share({ title: 'PricePulse Deal', text, url: window.location.href });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        showNotification("🔗 Link copied to clipboard!");
+    }
+};
+
+window.checkin = (dealId) => {
+    if (!state.isLoggedIn) { window.openAuth(); return; }
+    const deal = state.finds.find(d => d.id === parseInt(dealId));
+    showNotification(`✅ Checked in at ${deal?.loc || 'location'}! XP +10`);
+    addXP(10);
+};
+
 window.shareDeal = () => {
     window.sharePulse();
 };
