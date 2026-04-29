@@ -868,6 +868,29 @@ function updateComparisonUI(item) {
 
 // --- 7. CONTENT RENDERERS (FEED & BOUNTIES) ---
 
+// Show skeleton loader for better UX
+function showSkeletonLoader(container) {
+    container.innerHTML = Array(3).fill(`
+        <div class="skeleton-card">
+            <div class="skeleton-header">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-text">
+                    <div class="skeleton-line" style="width: 120px; height: 14px;"></div>
+                    <div class="skeleton-line" style="width: 80px; height: 10px;"></div>
+                </div>
+            </div>
+            <div class="skeleton-image"></div>
+            <div class="skeleton-actions">
+                <div class="skeleton-btn"></div>
+                <div class="skeleton-btn"></div>
+                <div class="skeleton-btn"></div>
+                <div style="flex:1;"></div>
+                <div class="skeleton-btn"></div>
+            </div>
+        </div>
+    `).join('');
+}
+
 function renderFeed() {
     const container = get('feed-container'); 
     if (!container) {
@@ -875,14 +898,25 @@ function renderFeed() {
         return;
     }
     
-    container.innerHTML = '';
+    // Show skeleton loading first
+    showSkeletonLoader(container);
     
     // Use state.finds or fallback to sample data
-    const deals = state.finds?.length ? state.finds : [
-        { id: 1, user: "FoodieKing 🍔", name: "The Umami Burger", price: 18.5, loc: "Orchard Road", category: "food", img: "gourmet_burger_find_1777014996371.png", likes: 42, homePrice: 19.20 },
-        { id: 2, user: "TechWiz 💻", name: "MacBook Pro M3", price: 3299, loc: "City Hall", category: "electronics", img: "premium_laptop_find_1777015033134.png", likes: 256, homePrice: 3499 },
-        { id: 3, user: "StyleIcon ⌚", name: "Elite Watch", price: 1250, loc: "Marina Bay", category: "fashion", img: "luxury_watch_find_1777015121802.png", likes: 112, homePrice: 1350 }
-    ];
+    const deals = state.finds?.length ? state.finds : FALLBACK_DATA;
+    
+    // Clear skeleton and render deals
+    container.innerHTML = '';
+    
+    if (deals.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📸</div>
+                <h3>No deals yet</h3>
+                <p>Be the first to share a deal!</p>
+            </div>
+        `;
+        return;
+    }
     
     console.log('Rendering', deals.length, 'deals');
     
@@ -904,7 +938,7 @@ function renderFeed() {
             </div>
             
             <div class="card-content" onclick="window.showComparison(${item.id})">
-                <img src="${item.img}" class="card-image">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${item.img}" class="card-image lazy" alt="${item.name}" onload="this.style.opacity=1">
                 <div class="card-price">$${item.price.toLocaleString()}</div>
             </div>
             
@@ -938,16 +972,6 @@ function renderFeed() {
         `;
         container.appendChild(card);
     });
-    
-    if (list.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📸</div>
-                <h3>No deals yet</h3>
-                <p>Be the first to share a deal!</p>
-            </div>
-        `;
-    }
     
     lucide.createIcons();
 }
@@ -1114,13 +1138,41 @@ window.renderLeaderboard = () => {
     lb.innerHTML = top.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${i+1}. @${u.user}</span><span style="color:var(--accent-lime); font-weight:900;">${u.likes} ❤️</span></div>`).join('');
 };
 
-function showNotification(msg) {
+function showNotification(msg, type = 'info') {
     const n = document.createElement('div'); 
-    n.style = 'position:fixed; bottom: 80px; left: 50%; transform:translateX(-50%); padding: 12px 24px; border-radius: 50px; z-index: 9999; background: var(--text-white); color: var(--bg-dark); font-weight: 600; font-size: 14px;';
+    const bgColors = {
+        info: 'var(--text-white)',
+        success: 'var(--accent-lime)',
+        warning: '#ff9800',
+        error: '#f44336'
+    };
+    const textColors = {
+        info: 'var(--bg-dark)',
+        success: '#000',
+        warning: '#000',
+        error: '#fff'
+    };
+    n.style = `position:fixed; bottom: 80px; left: 50%; transform:translateX(-50%); padding: 12px 24px; border-radius: 50px; z-index: 9999; background: ${bgColors[type] || bgColors.info}; color: ${textColors[type] || textColors.info}; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);`;
     n.innerText = msg; 
     document.body.appendChild(n); 
-    setTimeout(() => n.remove(), 2000);
+    setTimeout(() => {
+        n.style.opacity = '0';
+        n.style.transition = 'opacity 0.3s';
+        setTimeout(() => n.remove(), 300);
+    }, 2000);
 }
+
+// Global error handler
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    showNotification('Something went wrong. Please try again.', 'error');
+});
+
+// Unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise:', event.reason);
+    showNotification('An unexpected error occurred.', 'error');
+});
 
 // --- PROFILE FUNCTIONS ---
 window.openProfile = () => {
@@ -1275,26 +1327,89 @@ window.closeModals = () => {
 };
 
 // --- RENDER ACTIVITY ---
-function renderActivity() {
+async function renderActivity() {
     const list = get('activity-content');
     if (!list) return;
     
-    list.innerHTML = '';
-    state.notifications.forEach(n => {
-        const item = document.createElement('div');
-        item.style = 'display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border-color);';
-        item.innerHTML = `
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: ${n.color}22; color: ${n.color}; display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="${n.icon}" size="18"></i>
-            </div>
-            <div style="flex: 1;">
-                <p style="font-size: 14px;">${n.text}</p>
-                <p style="font-size: 12px; color: var(--text-gray);">${n.time}</p>
-            </div>`;
-        list.appendChild(item);
-    });
-    lucide.createIcons();
+    // Show loading
+    list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+    
+    try {
+        let notifs = state.notifications || [];
+        
+        // Try Firebase first
+        if (window.firebaseService && firebaseService.currentUser) {
+            try {
+                const fbNotifs = await firebaseService.getNotifications(firebaseService.currentUser.uid, 20);
+                if (fbNotifs && fbNotifs.length > 0) {
+                    notifs = fbNotifs.map(n => ({
+                        id: n.id,
+                        text: n.text || 'New notification',
+                        time: formatTimeAgo(n.createdAt?.toDate() || new Date()),
+                        icon: n.type || 'bell',
+                        color: getNotificationColor(n.type),
+                        targetTab: n.dealId ? 'deals' : null
+                    }));
+                }
+            } catch (e) {
+                console.warn('Firebase notifications failed, using local:', e);
+            }
+        }
+        
+        list.innerHTML = '';
+        
+        if (notifs.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications</h3><p>We\'ll notify you of deals!</p></div>';
+            return;
+        }
+        
+        notifs.forEach(n => {
+            const item = document.createElement('div');
+            item.style = 'display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;';
+            item.onmouseenter = () => item.style.background = 'rgba(255,255,255,0.05)';
+            item.onmouseleave = () => item.style.background = 'transparent';
+            item.onclick = () => { 
+                if (n.targetTab) window.switchTab(n.targetTab); 
+                window.closeModals(); 
+            };
+            item.innerHTML = `
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: ${n.color}22; color: ${n.color}; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="${n.icon}" size="18"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="font-size: 14px;">${n.text}</p>
+                    <p style="font-size: 12px; color: var(--text-gray);">${n.time}</p>
+                </div>`;
+            list.appendChild(item);
+        });
+        
+        lucide.createIcons();
+    } catch (error) {
+        console.error('Error rendering activity:', error);
+        list.innerHTML = '<div class="error-state"><p>Failed to load notifications</p><button class="btn-retry" onclick="renderActivity()">Retry</button></div>';
+    }
 }
+
+function formatTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+}
+
+function getNotificationColor(type) {
+    const colors = {
+        'like': 'var(--accent-pink)',
+        'comment': 'var(--accent-lime)',
+        'follow': 'var(--accent-blue)',
+        'bounty': 'var(--accent-energy)',
+        'alert': 'var(--accent-fire)',
+        'drop': 'var(--accent-save)'
+    };
+    return colors[type] || 'var(--text-secondary)';
+}
+
 window.renderActivity = renderActivity;
 
 // Copy share link
@@ -1382,6 +1497,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateIdentityUI();
     renderFeed(); 
     lucide.createIcons(); 
+    
+    // Initialize lazy loading
+    if (typeof initLazyLoading === 'function') {
+        initLazyLoading();
+    }
     
     // Request real GPS location
     if (navigator.geolocation) {
