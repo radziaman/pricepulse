@@ -20,6 +20,7 @@ class FirebaseService {
         this.db = fbDb;
         this.auth = fbAuth;
         this.currentUser = null;
+        this.listeners = [];
     }
 
     // Initialize Firebase services
@@ -28,6 +29,12 @@ class FirebaseService {
         this.auth.onAuthStateChanged((user) => {
             this.currentUser = user;
         });
+    }
+
+    // ========== CLEANUP ==========
+    destroy() {
+        this.listeners.forEach(unsub => unsub());
+        this.listeners = [];
     }
 
     // ========== USER PROFILE OPERATIONS ==========
@@ -427,26 +434,29 @@ class FirebaseService {
     }
 
     // ========== NOTIFICATIONS ==========
-
-    // Add notification (Instagram/Twitter style)
+    
+    // Add notification
     async addNotification(userId, notification) {
         try {
-            const notifsRef = this.db.collection('notifications');
-            await notifsRef.add({
+            const notifRef = this.db.collection('notifications').doc();
+            await notifRef.set({
                 userId,
                 ...notification,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
             });
+            return notifRef.id;
         } catch (error) {
             console.error('Error adding notification:', error);
+            return null;
         }
     }
-
-    // Get user notifications
-    async getNotifications(userId, limitCount = 50) {
+    
+    // Get notifications for user
+    async getNotifications(userId, limitCount = 20) {
         try {
-            const notifsRef = this.db.collection('notifications');
-            const q = notifsRef
+            const notifRef = this.db.collection('notifications');
+            const q = notifRef
                 .where('userId', '==', userId)
                 .orderBy('createdAt', 'desc')
                 .limit(limitCount);
@@ -457,7 +467,27 @@ class FirebaseService {
             return [];
         }
     }
-
+    
+    // Real-time listener for notifications
+    subscribeToNotifications(userId, callback) {
+        const notifRef = this.db.collection('notifications');
+        const q = notifRef
+            .where('userId', '==', userId)
+            .where('read', '==', false)
+            .orderBy('createdAt', 'desc')
+            .limit(20);
+        
+        const unsubscribe = q.onSnapshot((snapshot) => {
+            const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            callback(notifications);
+        }, (error) => {
+            console.error('Notification listener error:', error);
+        });
+        
+        this.listeners.push(unsubscribe);
+        return unsubscribe;
+    }
+    
     // Mark notification as read
     async markNotificationRead(notificationId) {
         try {

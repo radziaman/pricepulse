@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles - users can read all but only edit own
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Deals - public read, authenticated write
+    match /deals/{dealId} {
+      allow read: if true;
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // Likes - users can only like/unlike for themselves
+    match /likes/{likeId} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Comments - public read, authenticated write
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // Follows - users can only follow/unfollow for themselves
+    match /follows/{followId} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == request.resource.data.followerId;
+    }
+    
+    // Notifications - users can only access their own
+    match /notifications/{notifId} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Bounties - public read, authenticated write
+    match /bounties/{bountyId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
