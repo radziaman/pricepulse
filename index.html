@@ -27,24 +27,18 @@
                 <div class="header-logo">PricePulse</div>
                 <div class="header-tagline">Find. Share. Save.</div>
             </div>
-            <div class="header-actions" id="header-actions">
-                <div class="icon-btn" data-action="search" title="Search">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                    </svg>
-                </div>
-                <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <span class="notif-dot" id="notif-dot"></span>
-                </div>
-                <div class="icon-btn" data-action="profile" title="Profile">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </div>
-            </div>
+    <div class="header-actions" id="header-actions">
+        <div class="icon-btn" data-action="search" title="Search">
+            <i data-lucide="search" width="20" height="20"></i>
+        </div>
+        <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
+            <i data-lucide="bell" width="20" height="20"></i>
+            <span class="notif-dot" id="notif-dot"></span>
+        </div>
+        <div class="icon-btn" data-action="profile" title="Profile">
+            <i data-lucide="user" width="20" height="20"></i>
+        </div>
+    </div>
         </div>
     </header>
 
@@ -56,22 +50,22 @@
     <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" id="bottom-nav">
         <div class="nav-item active" data-action="home">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <i data-lucide="home" width="24" height="24"></i>
             <span class="nav-label">Home</span>
         </div>
         <div class="nav-item" data-action="explore">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.24 10.24 15.24 7.24 15.24"/></svg>
+            <i data-lucide="compass" width="24" height="24"></i>
             <span class="nav-label">Explore</span>
         </div>
         <div class="nav-item create" data-action="upload">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6M13 19V5l7 7-7 7z" transform="rotate(180 12 12)"/></svg>
+            <i data-lucide="plus-circle" width="28" height="28"></i>
         </div>
         <div class="nav-item" data-action="activity">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <i data-lucide="bell" width="24" height="24"></i>
             <span class="nav-label">Activity</span>
         </div>
         <div class="nav-item" data-action="profile">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <i data-lucide="user" width="24" height="24"></i>
             <span class="nav-label">Profile</span>
         </div>
     </nav>
@@ -115,7 +109,7 @@
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('SW registered:', reg.scope))
                     .catch(err => console.log('SW registration failed:', err));
             });

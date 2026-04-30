@@ -1775,3 +1775,84 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+
+// Event delegation for data-action attributes
+document.addEventListener('click', (e) => {
+  const actionElement = e.target.closest('[data-action]');
+  if (!actionElement) return;
+  
+  const action = actionElement.dataset.action;
+  const dealId = actionElement.dataset.dealId;
+  const userId = actionElement.dataset.user;
+  
+  // Handle actions
+  if (action === 'home') switchView('home');
+  else if (action === 'explore') switchView('explore');
+  else if (action === 'upload') window.openUpload();
+  else if (action === 'activity') window.openNotifications();
+  else if (action === 'profile') window.openProfile();
+  else if (action === 'search') {
+    const searchModal = window.Modals?.SearchModal?.();
+    if (searchModal) window.openModal('search-modal');
+  }
+  else if (action === 'close-dashboard') window.closeDashboard();
+  else if (action === 'show-user-profile' && userId) {
+    showNotification(`Viewing profile: ${userId}`);
+  }
+  else if (action === 'show-comparison' && dealId) {
+    window.showComparison(parseInt(dealId));
+  }
+  else if (action === 'toggle-like' && dealId) {
+    window.toggleLike(parseInt(dealId));
+  }
+  else if (action === 'open-comments' && dealId) {
+    window.openComments(parseInt(dealId));
+  }
+  else if (action === 'share-deal') {
+    showNotification('Share feature coming soon!');
+  }
+  else if (action === 'toggle-favorite' && dealId) {
+    window.toggleFavorite(parseInt(dealId));
+  }
+  else if (action === 'close-modals') {
+    window.closeModals();
+  }
+});
+
+// Initialize Lucide icons when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+  
+  // Initialize geolocation
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        state.userCoords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        const locationText = document.getElementById('current-location-text');
+        if (locationText) {
+          // Reverse geocode to get location name
+          reverseGeocode(position.coords.latitude, position.coords.longitude)
+            .then(name => {
+              state.userLocationName = name;
+              locationText.textContent = name;
+            });
+        }
+        sortFeedByProximity();
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        const locationText = document.getElementById('current-location-text');
+        if (locationText) {
+          locationText.innerText = 'Location access denied';
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+});
