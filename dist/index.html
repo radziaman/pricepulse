@@ -10,11 +10,11 @@
     <meta name="description" content="PricePulse - Find, share, and save on the best deals near you. Social deal sharing platform.">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Firebase SDK (loaded before app) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-  <script type="module" crossorigin src="./assets/index-DXGo8kUs.js"></script>
+  <script type="module" crossorigin src="./assets/index-_UaXEbMZ.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-D-orGQ7G.css">
 <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 <body>
@@ -47,22 +47,22 @@
 
     <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" id="bottom-nav">
-        <div class="nav-item active" data-action="home" id="btn-home">
+        <div class="nav-item active" data-action="home">
             <i data-lucide="home" width="24" height="24"></i>
             <span class="nav-label">Home</span>
         </div>
-        <div class="nav-item" data-action="explore" id="btn-explore">
+        <div class="nav-item" data-action="explore">
             <i data-lucide="compass" width="24" height="24"></i>
             <span class="nav-label">Explore</span>
         </div>
-        <div class="nav-item create" data-action="upload" id="btn-upload">
+        <div class="nav-item create" data-action="upload">
             <i data-lucide="plus-circle" width="28" height="28"></i>
         </div>
-        <div class="nav-item" data-action="activity" id="btn-activity">
+        <div class="nav-item" data-action="activity">
             <i data-lucide="bell" width="24" height="24"></i>
             <span class="nav-label">Activity</span>
         </div>
-        <div class="nav-item" data-action="profile" id="btn-profile">
+        <div class="nav-item" data-action="profile">
             <i data-lucide="user" width="24" height="24"></i>
             <span class="nav-label">Profile</span>
         </div>
@@ -71,7 +71,9 @@
     <!-- Modal Container -->
     <div id="modal-container" style="display: none;"></div>
 
-    <!-- App Entry Point (defer to ensure Firebase loads first) -->
+    <!-- App Entry Point -->
+    
+    <!-- Diagnostics (loads after app) -->
     
     <!-- Service Worker Registration -->
     <script>
@@ -83,25 +85,20 @@
             });
         }
         
-        // Debug helper - check if buttons work
+        // Fallback: Ensure buttons work even if app.js fails
         window.addEventListener('load', () => {
             setTimeout(() => {
-                console.log('🔍 Checking button functionality...');
-                const buttons = document.querySelectorAll('[data-action]');
-                console.log(`Found ${buttons.length} buttons with data-action`);
-                
-                buttons.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        console.log('✅ Button clicked:', btn.dataset.action);
+                if (typeof window.app === 'undefined') {
+                    console.warn('⚠️ App not loaded, using fallback handlers');
+                    document.addEventListener('click', (e) => {
+                        const actionEl = e.target.closest('[data-action]');
+                        if (!actionEl) return;
+                        const action = actionEl.dataset.action;
+                        console.log('Fallback handler:', action);
+                        alert('Action: ' + action + ' (fallback mode)');
                     });
-                });
-                
-                // Check if Lucide rendered
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                    console.log('✅ Lucide icons rendered');
                 }
-            }, 1000);
+            }, 3000);
         });
     </script>
 </body>

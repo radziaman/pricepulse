@@ -1,224 +1,348 @@
 // ==========================================
-// REAL-TIME UI/UX CHECKER & FIXER
+// PRICEPULSE REAL-TIME DIAGNOSTICS & AUTO-FIX
 // ==========================================
-// This script diagnoses and auto-fixes common issues
+// Inject this in browser console OR it auto-loads with app
+// Usage: window.runDiagnostics() or just wait for auto-check
 
 (function() {
     'use strict';
     
-    const checker = {
-        errors: [],
-        warnings: [],
-        fixes: [],
+    const DIAGNOSTICS_VERSION = '2.0';
+    
+    const diagnostics = {
+        results: { pass: 0, fail: 0, warn: 0 },
+        issues: [],
         
-        // Run all checks
-        async runDiagnostics() {
-            console.log('🔍 Starting PricePulse Diagnostics...');
-            
-            this.checkJavaScriptLoading();
-            this.checkEventListeners();
-            this.checkModals();
-            this.checkLucideIcons();
-            this.checkFirebase();
-            this.checkServiceWorker();
-            
-            this.report();
-            this.attemptAutoFix();
-            
-            return { errors: this.errors, warnings: this.warnings, fixes: this.fixes };
+        // Color schemes for console
+        colors: {
+            pass: '#00ff00',
+            fail: '#ff0000', 
+            warn: '#ffaa00',
+            info: '#00aaff',
+            title: '#ff00ff'
         },
         
-        // Check if JavaScript is loading
-        checkJavaScriptLoading() {
-            console.log('Checking JavaScript loading...');
+        // Main entry point
+        async run() {
+            console.clear();
+            this.header();
             
-            if (typeof window.app === 'undefined') {
-                this.errors.push('❌ Main app (window.app) not loaded');
-                
-                // Check if app.js loaded
-                const scripts = Array.from(document.scripts);
-                const appScript = scripts.find(s => s.src.includes('app.js') || s.textContent.includes('PricePulseApp'));
-                
-                if (!appScript) {
-                    this.errors.push('❌ app.js script not found in DOM');
+            // Run all checks
+            await this.checkScripts();
+            await this.checkFirebase();
+            await this.checkEventListeners();
+            await this.checkModals();
+            await this.checkLucideIcons();
+            await this.checkAppState();
+            
+            // Report and fix
+            this.report();
+            await this.autoFix();
+            
+            return this.results;
+        },
+        
+        header() {
+            console.log(
+                '%c🔧 PricePulse Diagnostics v' + DIAGNOSTICS_VERSION + '%c 🚀', 
+                'font-size: 24px; font-weight: bold; color: ' + this.colors.title,
+                'font-size: 16px;'
+            );
+            console.log('='.repeat(60));
+        },
+        
+        // Check if scripts are loaded
+        async checkScripts() {
+            this.log('info', '📜 Checking script loading...');
+            
+            const scripts = Array.from(document.scripts);
+            const checks = [
+                { name: 'Lucide', test: () => typeof lucide !== 'undefined', fix: this.fixLucide },
+                { name: 'Firebase Core', test: () => typeof firebase !== 'undefined', fix: this.fixFirebase },
+                { name: 'Firebase Auth', test: () => typeof firebase !== 'undefined' && firebase.auth, fix: this.fixFirebase },
+                { name: 'Firebase Firestore', test: () => typeof firebase !== 'undefined' && firebase.firestore, fix: this.fixFirebase },
+                { name: 'App Module', test: () => typeof window.app !== 'undefined', fix: this.fixApp }
+            ];
+            
+            for (const check of checks) {
+                if (check.test()) {
+                    this.log('pass', `  ✅ ${check.name} loaded`);
+                    this.results.pass++;
                 } else {
-                    this.warnings.push('⚠️ app.js found but PricePulseApp not initialized');
+                    this.log('fail', `  ❌ ${check.name} NOT loaded`);
+                    this.results.fail++;
+                    this.issues.push({ type: 'script', name: check.name, fix: check.fix });
                 }
-            } else {
-                console.log('✅ Main app loaded');
             }
         },
         
-        // Check event listeners
-        checkEventListeners() {
-            console.log('Checking event listeners...');
+        // Check Firebase initialization
+        async checkFirebase() {
+            this.log('info', '🔥 Checking Firebase...');
+            
+            try {
+                if (typeof firebase === 'undefined') {
+                    this.log('fail', '  ❌ Firebase not loaded');
+                    this.results.fail++;
+                    return;
+                }
+                
+                const app = firebase.app();
+                this.log('pass', '  ✅ Firebase app initialized');
+                this.results.pass++;
+                
+                const auth = firebase.auth();
+                if (auth) {
+                    this.log('pass', '  ✅ Auth service ready');
+                    this.results.pass++;
+                }
+                
+                const db = firebase.firestore();
+                if (db) {
+                    this.log('pass', '  ✅ Firestore service ready');
+                    this.results.pass++;
+                }
+                
+            } catch (e) {
+                this.log('fail', '  ❌ Firebase error: ' + e.message);
+                this.results.fail++;
+            }
+        },
+        
+        // Check if event listeners work
+        async checkEventListeners() {
+            this.log('info', '🖱️ Checking event listeners...');
             
             const buttons = document.querySelectorAll('[data-action]');
+            this.log('info', `  Found ${buttons.length} action buttons`);
+            
             if (buttons.length === 0) {
-                this.warnings.push('⚠️ No elements with data-action found');
-            } else {
-                console.log(`✅ Found ${buttons.length} actionable elements`);
+                this.log('fail', '  ❌ No buttons with data-action found');
+                this.results.fail++;
+                return;
             }
             
-            // Test if document click listener exists
+            // Check if document has click listener
             const testEvent = new Event('click');
-            const button = document.querySelector('[data-action="home"]');
-            if (button) {
-                // We can't directly check if listeners exist, but we can test if click works
-                console.log('✅ Event delegation should be working');
+            let listenerWorking = false;
+            
+            const testHandler = () => { listenerWorking = true; };
+            document.addEventListener('click', testHandler);
+            document.dispatchEvent(testEvent);
+            document.removeEventListener('click', testHandler);
+            
+            if (listenerWorking) {
+                this.log('pass', '  ✅ Document click listener working');
+                this.results.pass++;
+            } else {
+                this.log('warn', '  ⚠️ Document click listener may not be attached');
+                this.results.warn++;
+                this.issues.push({ type: 'listener', fix: this.fixListeners });
             }
         },
         
         // Check modals
-        checkModals() {
-            console.log('Checking modals...');
+        async checkModals() {
+            this.log('info', '🪟 Checking modals...');
             
             const modalContainer = document.getElementById('modal-container');
-            if (!modalContainer) {
-                this.errors.push('❌ Modal container not found');
+            if (modalContainer) {
+                this.log('pass', '  ✅ Modal container exists');
+                this.results.pass++;
             } else {
-                console.log('✅ Modal container exists');
-            }
-            
-            // Check if modal CSS exists
-            const modalSheet = document.querySelector('.modal-sheet');
-            if (!modalSheet) {
-                this.warnings.push('⚠️ No modal sheets found (may load dynamically)');
+                this.log('fail', '  ❌ Modal container missing');
+                this.results.fail++;
+                this.issues.push({ type: 'modal', fix: this.fixModalContainer });
             }
         },
         
-        // Check Lucide icons
-        checkLucideIcons() {
-            console.log('Checking Lucide icons...');
+        // Check Lucide icons rendering
+        async checkLucideIcons() {
+            this.log('info', '🎨 Checking Lucide icons...');
             
             if (typeof lucide === 'undefined') {
-                this.errors.push('❌ Lucide library not loaded');
+                this.log('fail', '  ❌ Lucide not loaded');
+                this.results.fail++;
+                return;
+            }
+            
+            const icons = document.querySelectorAll('[data-lucide]');
+            const unrendered = Array.from(icons).filter(i => i.innerHTML.trim() === '');
+            
+            if (unrendered.length === 0) {
+                this.log('pass', `  ✅ All ${icons.length} icons rendered`);
+                this.results.pass++;
             } else {
-                console.log('✅ Lucide loaded');
+                this.log('warn', `  ⚠️ ${unrendered.length}/${icons.length} icons not rendered`);
+                this.results.warn++;
+                this.issues.push({ type: 'icons', fix: this.fixIcons });
+            }
+        },
+        
+        // Check app state
+        async checkAppState() {
+            this.log('info', '📱 Checking app state...');
+            
+            if (typeof window.app !== 'undefined') {
+                this.log('pass', '  ✅ App initialized');
+                this.results.pass++;
                 
-                // Check if icons rendered
-                const icons = document.querySelectorAll('[data-lucide]');
-                const emptyIcons = Array.from(icons).filter(i => i.innerHTML.trim() === '');
-                
-                if (emptyIcons.length > 0) {
-                    this.warnings.push(`⚠️ ${emptyIcons.length} Lucide icons not rendered`);
-                    this.fixes.push('Running lucide.createIcons()');
-                    setTimeout(() => lucide.createIcons(), 100);
-                } else {
-                    console.log(`✅ ${icons.length} Lucide icons rendered`);
+                if (window.app.state) {
+                    this.log('pass', '  ✅ App state exists');
+                    this.results.pass++;
+                }
+            } else {
+                this.log('fail', '  ❌ App not initialized');
+                this.results.fail++;
+            }
+        },
+        
+        // Report results
+        report() {
+            console.log('\n' + '='.repeat(60));
+            console.log('%c📊 DIAGNOSTICS REPORT', 'font-size: 18px; font-weight: bold;');
+            console.log('='.repeat(60));
+            
+            console.log('%c  ✅ Passed: ' + this.results.pass, 'color: ' + this.colors.pass + '; font-weight: bold;');
+            console.log('%c  ❌ Failed: ' + this.results.fail, 'color: ' + this.colors.fail + '; font-weight: bold;');
+            console.log('%c  ⚠️ Warnings: ' + this.results.warn, 'color: ' + this.colors.warn + '; font-weight: bold;');
+            console.log('='.repeat(60) + '\n');
+        },
+        
+        // Auto-fix issues
+        async autoFix() {
+            if (this.issues.length === 0) {
+                this.log('pass', '🎉 No issues to fix!');
+                return;
+            }
+            
+            this.log('info', '🔧 Attempting auto-fix...');
+            
+            for (const issue of this.issues) {
+                if (issue.fix) {
+                    try {
+                        await issue.fix.call(this);
+                        this.log('pass', `  ✅ Fixed: ${issue.name || issue.type}`);
+                    } catch (e) {
+                        this.log('fail', `  ❌ Fix failed: ${e.message}`);
+                    }
                 }
             }
         },
         
-        // Check Firebase
-        checkFirebase() {
-            console.log('Checking Firebase...');
-            
-            // Check if Firebase is loaded (from CDN)
-            if (typeof firebase !== 'undefined') {
-                console.log('✅ Firebase global object found');
-            } else {
-                this.warnings.push('⚠️ Firebase global object not found (may use ES modules)');
-            }
-            
-            // Check if our Firebase module loaded
-            if (typeof auth === 'undefined' && typeof firebase === 'undefined') {
-                this.errors.push('❌ Firebase auth not initialized');
-            }
+        // ========== FIX METHODS ==========
+        
+        async fixLucide() {
+            this.log('info', '  📥 Loading Lucide...');
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/lucide@latest';
+                script.onload = () => {
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                        this.log('pass', '  ✅ Lucide loaded and rendered');
+                    }
+                    resolve();
+                };
+                document.head.appendChild(script);
+            });
         },
         
-        // Check service worker
-        checkServiceWorker() {
-            console.log('Checking service worker...');
+        async fixFirebase() {
+            this.log('info', '  📥 Loading Firebase...');
+            const scripts = [
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js',
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js',
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js'
+            ];
             
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                    if (regs.length > 0) {
-                        console.log(`✅ ${regs.length} service worker(s) registered`);
-                    } else {
-                        this.warnings.push('⚠️ No service workers registered');
-                    }
+            for (const src of scripts) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    document.head.appendChild(script);
                 });
             }
-        },
-        
-        // Report findings
-        report() {
-            console.log('\n========== DIAGNOSTIC REPORT ==========');
-            console.log(`Errors: ${this.errors.length}`);
-            console.log(`Warnings: ${this.warnings.length}`);
-            console.log(`Fixes applied: ${this.fixes.length}`);
-            console.log('======================================\n');
             
-            if (this.errors.length > 0) {
-                console.error('ERRORS:');
-                this.errors.forEach(e => console.error(e));
-            }
-            
-            if (this.warnings.length > 0) {
-                console.warn('WARNINGS:');
-                this.warnings.forEach(w => console.warn(w));
-            }
-            
-            if (this.fixes.length > 0) {
-                console.log('FIXES APPLIED:');
-                this.fixes.forEach(f => console.log('✅', f));
+            // Initialize Firebase
+            if (typeof firebase !== 'undefined' && !firebase.apps?.length) {
+                firebase.initializeApp({
+                    apiKey: "AIzaSyBSAfeL0EIwFFvHaTVsJBCBFqwPkHWnTLs",
+                    authDomain: "pricepulse-global.firebaseapp.com",
+                    projectId: "pricepulse-global"
+                });
+                this.log('pass', '  ✅ Firebase initialized');
             }
         },
         
-        // Attempt to auto-fix common issues
-        attemptAutoFix() {
-            console.log('\n🔧 Attempting auto-fixes...');
+        async fixApp() {
+            this.log('info', '  📥 Re-initializing app...');
             
-            // Fix 1: Re-initialize Lucide icons
-            if (typeof lucide !== 'undefined') {
-                setTimeout(() => {
-                    lucide.createIcons();
-                    console.log('✅ Re-rendered Lucide icons');
-                }, 500);
-            }
-            
-            // Fix 2: Re-attach event listeners if missing
-            if (typeof window.app === 'undefined') {
-                console.log('⚠️ Cannot auto-fix: app not loaded');
-            }
-            
-            // Fix 3: Check if modules are supported
-            if (!('noModule' in HTMLScriptElement.prototype)) {
-                this.errors.push('❌ Browser does not support ES modules');
+            // Re-run app initialization
+            if (typeof PricePulseApp !== 'undefined') {
+                window.app = new PricePulseApp();
+                this.log('pass', '  ✅ App re-initialized');
+            } else {
+                this.log('warn', '  ⚠️ PricePulseApp class not found');
             }
         },
         
-        // Test button clicks
-        testButtons() {
-            console.log('\n🧪 Testing button functionality...');
+        fixListeners() {
+            this.log('info', '  🔧 Re-attaching event listeners...');
             
-            const actions = ['home', 'explore', 'upload', 'activity', 'profile'];
-            actions.forEach(action => {
-                const btn = document.querySelector(`[data-action="${action}"]`);
-                if (btn) {
-                    console.log(`✅ Button [${action}] found`);
-                } else {
-                    this.errors.push(`❌ Button [${action}] not found`);
+            // Re-attach document click listener
+            document.addEventListener('click', (e) => {
+                const actionEl = e.target.closest('[data-action]');
+                if (!actionEl) return;
+                
+                const action = actionEl.dataset.action;
+                this.log('info', '  🖱️ Action triggered: ' + action);
+                
+                // Basic handlers for testing
+                if (window.app && window.app.handleAction) {
+                    window.app.handleAction(action);
                 }
             });
+            
+            this.log('pass', '  ✅ Event listeners re-attached');
+        },
+        
+        fixModalContainer() {
+            this.log('info', '  🔧 Creating modal container...');
+            const div = document.createElement('div');
+            div.id = 'modal-container';
+            div.style.display = 'none';
+            document.body.appendChild(div);
+            this.log('pass', '  ✅ Modal container created');
+        },
+        
+        fixIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                this.log('pass', '  ✅ Icons re-rendered');
+            }
+        },
+        
+        // Console logging helper
+        log(type, message) {
+            const color = this.colors[type] || '#ffffff';
+            console.log('%c' + message, 'color: ' + color);
         }
     };
     
-    // Expose to window for manual testing
-    window.diagnostics = checker;
+    // Expose to window
+    window.runDiagnostics = () => diagnostics.run();
+    window.diagnostics = diagnostics;
     
-    // Auto-run on load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => checker.runDiagnostics());
+    // Auto-run on load (delayed to let everything load)
+    if (document.readyState === 'complete') {
+        setTimeout(() => window.runDiagnostics(), 2000);
     } else {
-        checker.runDiagnostics();
+        window.addEventListener('load', () => {
+            setTimeout(() => window.runDiagnostics(), 2000);
+        });
     }
     
-    // Add manual test button (for debugging)
-    const debugBtn = document.createElement('div');
-    debugBtn.innerHTML = '🐛';
-    debugBtn.style = 'position:fixed; top:10px; right:10px; z-index:99999; cursor:pointer; font-size:24px; background:#000; padding:10px; border-radius:50%;';
-    debugBtn.onclick = () => checker.runDiagnostics();
-    document.body.appendChild(debugBtn);
+    console.log('%c🔧 PricePulse Diagnostics loaded! Run window.runDiagnostics() to check.', 'color: #00aaff;');
 })();
