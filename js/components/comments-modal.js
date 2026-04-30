@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.CommentsModal = function() {
+export function CommentsModal() {
     return `
     <div id="comments-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -29,4 +27,4 @@ window.Modals.CommentsModal = function() {
         </div>
     </div>
     `;
-};
+}

@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.AuthModal = function() {
+export function AuthModal() {
     return `
     <div id="auth-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -30,4 +28,4 @@ window.Modals.AuthModal = function() {
         </div>
     </div>
     `;
-};
+}

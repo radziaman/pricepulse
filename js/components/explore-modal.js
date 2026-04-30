@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.ExploreModal = function() {
+export function ExploreModal() {
     return `
     <div id="explore-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -14,4 +12,4 @@ window.Modals.ExploreModal = function() {
         </div>
     </div>
     `;
-};
+}

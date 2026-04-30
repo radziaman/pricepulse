@@ -10,14 +10,10 @@
     <meta name="description" content="PricePulse - Find, share, and save on the best deals near you. Social deal sharing platform.">
     <meta property="og:title" content="PricePulse | Find. Share. Save.">
     <meta property="og:description" content="Join the community hunting the best deals in Singapore!">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="website">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-  <script type="module" crossorigin src="/assets/index-CrgfmEHn.js"></script>
+  <script type="module" crossorigin src="/assets/index-CubxNRjo.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-DkkIAuD-.css">
 <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 <body>
@@ -28,25 +24,25 @@
                 <div class="header-logo">PricePulse</div>
                 <div class="header-tagline">Find. Share. Save.</div>
             </div>
-    <div class="header-actions" id="header-actions">
-        <div class="icon-btn" data-action="search" title="Search">
-            <i data-lucide="search" width="20" height="20"></i>
-        </div>
-        <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
-            <i data-lucide="bell" width="20" height="20"></i>
-            <span class="notif-dot" id="notif-dot"></span>
-        </div>
-        <div class="icon-btn" data-action="profile" title="Profile">
-            <i data-lucide="user" width="20" height="20"></i>
-        </div>
-    </div>
+            <div class="header-actions" id="header-actions">
+                <div class="icon-btn" data-action="search" title="Search">
+                    <i data-lucide="search" width="20" height="20"></i>
+                </div>
+                <div class="icon-btn" data-action="activity" title="Activity" style="position:relative;">
+                    <i data-lucide="bell" width="20" height="20"></i>
+                    <span class="notif-dot" id="notif-dot"></span>
+                </div>
+                <div class="icon-btn" data-action="profile" title="Profile">
+                    <i data-lucide="user" width="20" height="20"></i>
+                </div>
+            </div>
         </div>
     </header>
 
-     <!-- FEED CONTAINER -->
-     <div class="feed-container" id="feed-container">
-         <!-- Feed will be rendered here by JavaScript -->
-     </div>
+    <!-- FEED CONTAINER -->
+    <div class="feed-container" id="feed-container">
+        <!-- Feed will be rendered here by JavaScript -->
+    </div>
 
     <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" id="bottom-nav">
@@ -71,30 +67,13 @@
         </div>
     </nav>
 
-    <!-- Modal Container - Modals will be injected here dynamically -->
-    <div id="modal-container"></div>
+    <!-- Modal Container -->
+    <div id="modal-container" style="display: none;"></div>
 
-    <!-- DASHBOARD SECTION (Instagram/LinkedIn Style) -->
-    <div id="dashboard-section" style="display: none;">
-        <div class="dashboard-header">
-            <div class="header-top">
-                <div class="header-logo">Dashboard</div>
-                <div class="header-actions">
-                    <div class="icon-btn" data-action="close-dashboard">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="dashboard-container"></div>
-    </div>
-
-    <!-- Component Scripts -->
-
+    <!-- App Entry Point -->
+    
+    <!-- Service Worker Registration -->
     <script>
-        // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')

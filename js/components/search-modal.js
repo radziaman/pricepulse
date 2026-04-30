@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.SearchModal = function() {
+export function SearchModal() {
     return `
     <div id="search-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -17,4 +15,4 @@ window.Modals.SearchModal = function() {
         </div>
     </div>
     `;
-};
+}

@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.ProfileModal = function() {
+export function ProfileModal() {
     return `
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-sheet" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
@@ -66,4 +64,4 @@ window.Modals.ProfileModal = function() {
         </div>
     </div>
     `;
-};
+}

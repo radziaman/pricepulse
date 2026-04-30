@@ -1,15 +1,25 @@
 // ==========================================
-// FIREBASE CONFIGURATION 💎🔥
+// FIREBASE CONFIGURATION - Proper ES Module
 // ==========================================
-// 
-// To use with your Firebase project:
-// 1. Create a project at https://console.firebase.google.com
-// 2. Enable Authentication (Google, Apple, Email/Password)
-// 3. Enable Firestore Database
-// 4. Copy your web app config and replace below
-//
-// For now, this works in demo mode with local fallback.
-// Replace with your actual Firebase config for production.
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    OAuthProvider,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    sendEmailVerification
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+import { 
+    getFirestore, 
+    setDoc, 
+    doc, 
+    serverTimestamp 
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyBSAfeL0EIwFFvHaTVsJBCBFqwPkHWnTLs",
@@ -21,248 +31,90 @@ const firebaseConfig = {
     measurementId: "G-HDNV2SL7KF"
 };
 
-// Firebase services (initialized after DOM)
-let firebaseAuth = null;
-let db = null;
-
 // Initialize Firebase
-function initializeFirebase() {
-    try {
-        // Check if Firebase SDK is loaded
-        if (typeof firebase === 'undefined') {
-            console.warn('Firebase SDK not loaded - using local fallback');
-            return false;
-        }
-        
-        // Initialize Firebase app
-        firebase.initializeApp(firebaseConfig);
-        
-        // Initialize services
-        firebaseAuth = firebase.auth();
-        db = firebase.firestore();
-        
-        // Enable persistence
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
-        
-        console.log('✅ Firebase initialized with pricepulse-global');
-        
-        // Set up auth state listener
-        firebaseAuth.onAuthStateChanged(handleAuthStateChange);
-        
-        return true;
-    } catch (error) {
-        console.error('Firebase init failed:', error);
-        return false;
-    }
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+// Auth state handler
+let authStateCallback = null;
+
+export function onAuthState(handler) {
+    authStateCallback = handler;
+    onAuthStateChanged(auth, (user) => {
+        if (handler) handler(user);
+    });
 }
 
-// Handle auth state changes
-function handleAuthStateChange(user) {
-    if (user) {
-        // User is signed in
-        state.isLoggedIn = true;
-        state.currentUser = {
-            id: user.uid,
-            name: user.displayName || user.email?.split('@')[0] || 'User',
-            email: user.email,
-            photo: user.photoURL,
-            emailVerified: user.emailVerified,
-            method: user.providerData[0]?.providerId || 'firebase',
-            bio: "Price Hunter",
-            home: "Singapore"
-        };
-        state.user = state.currentUser;
-        localStorage.setItem('pulse_auth', 'true');
-        localStorage.setItem('pulse_user', JSON.stringify(state.currentUser));
-        updateIdentityUI();
-        renderFeed();
-    } else {
-        // User is signed out
-        // Don't clear UI immediately to avoid flash
-    }
-}
-
-// Login with Google
-window.loginWithGoogleFirebase = async function() {
-    if (!firebaseAuth) {
-        showNotification("Firebase not ready - try again");
-        return;
-    }
-    
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
+// Google Login
+export async function loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
     try {
-        showNotification("🔄 Connecting to Google...");
-        await firebaseAuth.signInWithPopup(provider);
-        showNotification("✅ Logged in with Google!");
+        const result = await signInWithPopup(auth, provider);
+        return { success: true, user: result.user };
     } catch (error) {
         console.error('Google login error:', error);
-        showNotification("Error: " + error.message);
+        return { success: false, error: error.message };
     }
-};
+}
 
-// Login with Apple
-window.loginWithAppleFirebase = async function() {
-    if (!firebaseAuth) {
-        showNotification("Firebase not ready - try again");
-        return;
-    }
-    
-    const provider = new firebase.auth.OAuthProvider('apple.com');
-    
+// Apple Login
+export async function loginWithApple() {
+    const provider = new OAuthProvider('apple.com');
     try {
-        showNotification("🔄 Connecting to Apple...");
-        await firebaseAuth.signInWithPopup(provider);
-        showNotification("✅ Logged in with Apple!");
+        const result = await signInWithPopup(auth, provider);
+        return { success: true, user: result.user };
     } catch (error) {
         console.error('Apple login error:', error);
-        showNotification("Error: " + error.message);
+        return { success: false, error: error.message };
     }
-};
+}
 
-// Register/Login with Email
-async function loginWithEmailFirebase() {
-    if (!firebaseAuth) {
-        showNotification("Firebase not ready - try again");
-        return;
-    }
-    
-    const email = get('auth-email')?.value;
-    const password = get('auth-password')?.value;
-    
-    if (!email || !password) {
-        showNotification("Please enter email and password");
-        return;
-    }
-    
-    if (password.length < 6) {
-        showNotification("Password must be at least 6 characters");
-        return;
-    }
-    
+// Email/Password Login or Register
+export async function loginWithEmail(email, password) {
     try {
-        showNotification("🔄 Creating account...");
-        
-        // Try to sign in first
+        // Try sign in first
         try {
-            await firebaseAuth.signInWithEmailAndPassword(email, password);
-            showNotification("✅ Logged in!");
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            return { success: true, user: result.user };
         } catch (signInError) {
             if (signInError.code === 'auth/user-not-found') {
-                // User doesn't exist, create new account
-                try {
-                    const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-                    
-                    // Send verification email
-                    await result.user.sendEmailVerification();
-                    showNotification("📧 Verification email sent!");
-                    
-                    // Show verification prompt
-                    get('auth-modal').style.display = 'none';
-                    get('verification-prompt-modal').style.display = 'flex';
-                } catch (createError) {
-                    showNotification("Error: " + createError.message);
-                }
-            } else if (signInError.code === 'auth/wrong-password') {
-                showNotification("Incorrect password");
-            } else {
-                showNotification("Error: " + signInError.message);
+                // Create new account
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                await sendEmailVerification(result.user);
+                return { success: true, user: result.user, needsVerification: true };
             }
+            throw signInError;
         }
     } catch (error) {
-        console.error('Login error:', error);
-    }
-}
-
-// Send verification email
-async function sendVerificationEmailFirebase() {
-    if (!firebaseAuth?.currentUser) return;
-    
-    try {
-        await firebaseAuth.currentUser.sendEmailVerification();
-        showNotification("📧 Verification email sent!");
-    } catch (error) {
-        showNotification("Error: " + error.message);
-    }
-}
-
-// Verify email (check if verified)
-async function checkEmailVerificationFirebase() {
-    if (!firebaseAuth?.currentUser) return;
-    
-    await firebaseAuth.currentUser.reload();
-    
-    if (firebaseAuth.currentUser.emailVerified) {
-        state.user.emailVerified = true;
-        localStorage.setItem('pulse_user', JSON.stringify(state.user));
-        closeModals();
-        showNotification("✅ Email verified!");
-    } else {
-        showNotification("Please verify your email first - check inbox");
+        console.error('Email login error:', error);
+        return { success: false, error: error.message };
     }
 }
 
 // Logout
-async function logoutFirebase() {
-    if (!firebaseAuth) return;
-    
+export async function logout() {
     try {
-        await firebaseAuth.signOut();
-        state.isLoggedIn = false;
-        state.user = { name: "Guest", bio: "Browsing...", home: "" };
-        localStorage.removeItem('pulse_auth');
-        localStorage.removeItem('pulse_user');
-        updateIdentityUI();
-        renderFeed();
-        showNotification("👋 Logged out");
+        await signOut(auth);
+        return { success: true };
     } catch (error) {
-        showNotification("Error: " + error.message);
+        console.error('Logout error:', error);
+        return { success: false, error: error.message };
     }
 }
 
-// Save user profile to Firestore
-async function saveProfileToFirestore() {
-    if (!db || !firebaseAuth?.currentUser) return;
-    
-    const userData = {
-        name: get('profile-name').value,
-        bio: get('profile-bio').value,
-        home: get('profile-home').value,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
+// Save user profile
+export async function saveUserProfile(userId, userData) {
     try {
-        await db.collection('users').doc(firebaseAuth.currentUser.uid).set(userData, { merge: true });
-        state.user = { ...state.user, ...userData };
-        localStorage.setItem('pulse_user', JSON.stringify(state.user));
-        updateIdentityUI();
-        showNotification("✅ Profile saved!");
+        await setDoc(doc(db, 'users', userId), {
+            ...userData,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        return { success: true };
     } catch (error) {
-        console.error('Profile save error:', error);
+        console.error('Save profile error:', error);
+        return { success: false, error: error.message };
     }
 }
 
-// Add functions to window for HTML access
-window.loginWithGoogleFirebase = loginWithGoogleFirebase;
-window.loginWithAppleFirebase = loginWithAppleFirebase;
-window.loginWithEmailFirebase = loginWithEmailFirebase;
-window.sendVerificationEmailFirebase = sendVerificationEmailFirebase;
-window.checkEmailVerificationFirebase = checkEmailVerificationFirebase;
-window.logoutFirebase = logoutFirebase;
-window.saveProfileToFirestore = saveProfileToFirestore;
-
-console.log('✅ Firebase functions loaded:', {
-    loginWithGoogleFirebase: typeof window.loginWithGoogleFirebase,
-    loginWithAppleFirebase: typeof window.loginWithAppleFirebase,
-    loginWithEmailFirebase: typeof window.loginWithEmailFirebase
-});
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    initializeFirebase();
-    
-    // Initialize Firebase service
-    if (window.firebaseService) {
-        window.firebaseService.init();
-    }
-});
+console.log('✅ Firebase module loaded');

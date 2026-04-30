@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.ShareModal = function() {
+export function ShareModal() {
     return `
     <div id="share-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -15,4 +13,4 @@ window.Modals.ShareModal = function() {
         </div>
     </div>
     `;
-};
+}

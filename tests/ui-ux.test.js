@@ -129,9 +129,18 @@ describe("PricePulse UI/UX Tests", () => {
       expect(header.classList.contains("nike-header")).toBe(true);
     });
 
-    it("should have SVG icons with proper attributes", () => {
-      const svgs = document.querySelectorAll("svg");
-      expect(svgs.length).toBeGreaterThan(5);
+    it("should have Lucide icons with proper attributes", () => {
+      const lucideIcons = html.match(/<i[^>]*data-lucide="[^"]*"[^>]*>/g);
+      expect(lucideIcons).toBeTruthy();
+      if (lucideIcons) {
+        lucideIcons.forEach(icon => {
+          expect(icon).toContain('width="');
+          expect(icon).toContain('height="');
+        });
+      }
+      
+      // Also check that Lucide script is loaded
+      expect(html).toContain("lucide@latest");
     });
   });
 });

@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.EditProfileModal = function() {
+export function EditProfileModal() {
     return `
     <div id="edit-profile-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -26,4 +24,4 @@ window.Modals.EditProfileModal = function() {
         </div>
     </div>
     `;
-};
+}

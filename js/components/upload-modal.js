@@ -1,6 +1,4 @@
-window.Modals = window.Modals || {};
-
-window.Modals.UploadModal = function() {
+export function UploadModal() {
     return `
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-sheet">
@@ -106,4 +104,4 @@ window.Modals.UploadModal = function() {
         </div>
     </div>
     `;
-};
+}

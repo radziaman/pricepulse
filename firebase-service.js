@@ -1,353 +1,189 @@
 // ==========================================
-// FIREBASE SERVICE - Complete Datastore 🔥
+// FIREBASE SERVICE - ES Module
 // ==========================================
-// Handles all Firestore operations for social features
-// Inspired by Instagram, Twitter, LinkedIn dashboards
+import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    getDocs, 
+    query, 
+    where, 
+    orderBy, 
+    limit, 
+    updateDoc,
+    deleteDoc,
+    arrayUnion, 
+    arrayRemove, 
+    increment,
+    serverTimestamp 
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
-// Use global firebase object (loaded from CDN)
-const fbAuth = firebase.auth();
-const fbDb = firebase.firestore();
-
-// Firebase collections structure:
-// - users/{userId} : User profiles, stats, preferences
-// - deals/{dealId} : Deal posts with likes, comments, shares
-// - notifications/{notifId} : User notifications
-// - follows/{followId} : User follow relationships
-// - bounties/{bountyId} : Bounty hunting tasks
+import { auth, db } from './firebase-config.js';
 
 class FirebaseService {
     constructor() {
-        this.db = fbDb;
-        this.auth = fbAuth;
+        this.db = db;
+        this.auth = auth;
         this.currentUser = null;
         this.listeners = [];
     }
 
-    // Initialize Firebase services
     init() {
-        // Listen to auth state
-        this.auth.onAuthStateChanged((user) => {
-            this.currentUser = user;
-        });
+        // Auth state is handled in firebase-config.js
+        console.log('✅ FirebaseService initialized');
     }
 
-    // ========== CLEANUP ==========
     destroy() {
         this.listeners.forEach(unsub => unsub());
         this.listeners = [];
     }
 
-    // ========== USER PROFILE OPERATIONS ==========
+    // ========== USER PROFILE ==========
     
-    // Create or update user profile (Instagram-style profile)
     async saveUserProfile(userId, userData) {
         try {
-            const userRef = this.db.collection('users').doc(userId);
-            await userRef.set({
+            await setDoc(doc(this.db, 'users', userId), {
                 ...userData,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                // Social stats
-                dealsCount: userData.dealsCount || 0,
-                followersCount: userData.followersCount || 0,
-                followingCount: userData.followingCount || 0,
-                totalSavings: userData.totalSavings || 0,
-                xp: userData.xp || 0,
-                level: userData.level || 1,
-                badges: userData.badges || [],
-                // Profile info
-                displayName: userData.displayName || '',
-                bio: userData.bio || '',
-                homeLocation: userData.homeLocation || '',
-                photoURL: userData.photoURL || '',
-                website: userData.website || '',
-                // Privacy & settings
-                isPublic: userData.isPublic !== false,
-                notificationsEnabled: userData.notificationsEnabled !== false
+                updatedAt: serverTimestamp()
             }, { merge: true });
-            return true;
+            return { success: true };
         } catch (error) {
-            console.error('Error saving user profile:', error);
-            return false;
+            console.error('Error saving profile:', error);
+            return { success: false, error: error.message };
         }
     }
 
-    // Get user profile with stats
     async getUserProfile(userId) {
         try {
-            const userRef = this.db.collection('users').doc(userId);
-            const docSnap = await userRef.get();
-            if (docSnap.exists) {
+            const docSnap = await getDoc(doc(this.db, 'users', userId));
+            if (docSnap.exists()) {
                 return { id: docSnap.id, ...docSnap.data() };
             }
             return null;
         } catch (error) {
-            console.error('Error getting user profile:', error);
+            console.error('Error getting profile:', error);
             return null;
         }
     }
 
-    // Get user's deals (for profile tabs - Instagram style)
-    async getUserDeals(userId, limitCount = 20) {
-        try {
-            const dealsRef = this.db.collection('deals');
-            const q = dealsRef
-                .where('userId', '==', userId)
-                .orderBy('createdAt', 'desc')
-                .limit(limitCount);
-            const querySnapshot = await q.get();
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            console.error('Error getting user deals:', error);
-            return [];
-        }
-    }
-
-    // Get user's liked deals
-    async getLikedDeals(userId, limitCount = 20) {
-        try {
-            const likesRef = this.db.collection('likes');
-            const q = likesRef
-                .where('userId', '==', userId)
-                .orderBy('createdAt', 'desc')
-                .limit(limitCount);
-            const querySnapshot = await q.get();
-            const likes = querySnapshot.docs.map(doc => doc.data());
-            
-            // Fetch actual deals
-            const dealPromises = likes.map(like => this.getDeal(like.dealId));
-            return (await Promise.all(dealPromises)).filter(deal => deal !== null);
-        } catch {
-            console.error('Error getting liked deals');
-            return [];
-        }
-    }
-
-    // Get user's saved/bookmarked deals
-    async getSavedDeals(userId, limitCount = 20) {
-        try {
-            const userRef = this.db.collection('users').doc(userId);
-            const userSnap = await userRef.get();
-            if (!userSnap.exists) return [];
-            
-            const savedIds = userSnap.data().savedDeals || [];
-            if (savedIds.length === 0) return [];
-            
-            // Fetch deals
-            const dealPromises = savedIds.slice(0, limitCount).map(id => this.getDeal(id));
-            return (await Promise.all(dealPromises)).filter(deal => deal !== null);
-        } catch {
-            console.error('Error getting saved deals');
-            return [];
-        }
-    }
-
-    // ========== DEAL OPERATIONS ==========
-
-    // Create a new deal (with social metadata)
+    // ========== DEALS ==========
+    
     async createDeal(dealData) {
         try {
-            const dealsRef = this.db.collection('deals');
-            const docRef = await dealsRef.add({
+            const docRef = doc(collection(this.db, 'deals'));
+            await setDoc(docRef, {
                 ...dealData,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                id: docRef.id,
+                createdAt: serverTimestamp(),
                 likesCount: 0,
                 commentsCount: 0,
                 sharesCount: 0,
-                viewsCount: 0,
-                isActive: true,
-                // Engagement metrics
-                buzzScore: 0, // calculated from likes + comments + shares
-                // AI insights
-                aiAnalysis: dealData.aiAnalysis || null,
-                bargainScore: dealData.bargainScore || 0
+                isActive: true
             });
-            
-            // Update user's deal count
-            if (dealData.userId) {
-                await this.incrementUserStat(dealData.userId, 'dealsCount', 1);
-            }
-            
-            return docRef.id;
+            return { success: true, dealId: docRef.id };
         } catch (error) {
             console.error('Error creating deal:', error);
-            return null;
+            return { success: false, error: error.message };
         }
     }
 
-    // Get a single deal
     async getDeal(dealId) {
         try {
-            const dealRef = this.db.collection('deals').doc(dealId);
-            const docSnap = await dealRef.get();
-            if (docSnap.exists) {
+            const docSnap = await getDoc(doc(this.db, 'deals', dealId));
+            if (docSnap.exists()) {
                 return { id: docSnap.id, ...docSnap.data() };
             }
             return null;
-        } catch {
-            console.error('Error getting deal');
+        } catch (error) {
+            console.error('Error getting deal:', error);
             return null;
         }
     }
 
-    // Get feed deals (Twitter-style timeline)
-    async getFeedDeals(userId = null, limitCount = 50) {
+    async getFeedDeals(limitCount = 50) {
         try {
-            const dealsRef = this.db.collection('deals');
-            let q;
-            
-            if (userId) {
-                // Get deals from followed users
-                const following = await this.getFollowing(userId);
-                const followingIds = following.map(u => u.id);
-                followingIds.push(userId); // Include own deals
-                
-                q = dealsRef
-                    .where('userId', 'in', followingIds)
-                    .where('isActive', '==', true)
-                    .orderBy('createdAt', 'desc')
-                    .limit(limitCount);
-            } else {
-                // Public feed
-                q = dealsRef
-                    .where('isActive', '==', true)
-                    .orderBy('createdAt', 'desc')
-                    .limit(limitCount);
-            }
-            
-            const querySnapshot = await q.get();
+            const q = query(
+                collection(this.db, 'deals'),
+                where('isActive', '==', true),
+                orderBy('createdAt', 'desc'),
+                limit(limitCount)
+            );
+            const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
-            console.error('Error getting feed deals:', error);
+            console.error('Error getting feed:', error);
             return [];
         }
     }
 
-    // ========== SOCIAL INTERACTIONS ==========
-
-    // Like/Unlike a deal (Twitter heart style)
+    // ========== LIKES ==========
+    
     async toggleLike(dealId, userId) {
         try {
-            const likeRef = this.db.collection('likes').doc(`${userId}_${dealId}`);
-            const likeSnap = await likeRef.get();
+            const likeRef = doc(this.db, 'likes', `${userId}_${dealId}`);
+            const likeSnap = await getDoc(likeRef);
             
-            if (likeSnap.exists) {
+            if (likeSnap.exists()) {
                 // Unlike
-                await likeRef.delete();
-                await this.incrementDealStat(dealId, 'likesCount', -1);
-                return false; // unliked
+                await deleteDoc(likeRef);
+                await updateDoc(doc(this.db, 'deals', dealId), {
+                    likesCount: increment(-1)
+                });
+                return { success: true, liked: false };
             } else {
                 // Like
-                await likeRef.set({
+                await setDoc(likeRef, {
                     dealId,
                     userId,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: serverTimestamp()
                 });
-                await this.incrementDealStat(dealId, 'likesCount', 1);
-                
-                // Add notification to deal owner
-                const deal = await this.getDeal(dealId);
-                if (deal && deal.userId !== userId) {
-                    await this.addNotification(deal.userId, {
-                        type: 'like',
-                        fromUserId: userId,
-                        dealId,
-                        text: 'liked your deal',
-                        read: false
-                    });
-                }
-                
-                return true; // liked
+                await updateDoc(doc(this.db, 'deals', dealId), {
+                    likesCount: increment(1)
+                });
+                return { success: true, liked: true };
             }
         } catch (error) {
             console.error('Error toggling like:', error);
-            return null;
-        }
-    }
-
-    // Check if user liked a deal
-    async hasLiked(dealId, userId) {
-        try {
-            const likeRef = this.db.collection('likes').doc(`${userId}_${dealId}`);
-            const likeSnap = await likeRef.get();
-            return likeSnap.exists;
-        } catch {
-            return false;
-        }
-    }
-
-    // Save/Unsave deal (bookmark)
-    async toggleSave(dealId, userId) {
-        try {
-            const userRef = this.db.collection('users').doc(userId);
-            const userSnap = await userRef.get();
-            
-            if (!userSnap.exists) return false;
-            
-            const savedDeals = userSnap.data().savedDeals || [];
-            
-            if (savedDeals.includes(dealId)) {
-                await userRef.update({
-                    savedDeals: firebase.firestore.FieldValue.arrayRemove(dealId)
-                });
-                return false; // unsaved
-            } else {
-                await userRef.update({
-                    savedDeals: firebase.firestore.FieldValue.arrayUnion(dealId)
-                });
-                return true; // saved
-            }
-        } catch (error) {
-            console.error('Error toggling save:', error);
-            return null;
+            return { success: false, error: error.message };
         }
     }
 
     // ========== COMMENTS ==========
-
-    // Add comment (Instagram-style)
+    
     async addComment(dealId, userId, text) {
         try {
-            const commentsRef = this.db.collection('comments');
-            const docRef = await commentsRef.add({
+            const docRef = doc(collection(this.db, 'comments'));
+            await setDoc(docRef, {
+                id: docRef.id,
                 dealId,
                 userId,
                 text,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                likes: 0
+                createdAt: serverTimestamp()
             });
             
-            // Update deal's comment count
-            await this.incrementDealStat(dealId, 'commentsCount', 1);
+            // Update comment count
+            await updateDoc(doc(this.db, 'deals', dealId), {
+                commentsCount: increment(1)
+            });
             
-            // Notify deal owner
-            const deal = await this.getDeal(dealId);
-            if (deal && deal.userId !== userId) {
-                await this.addNotification(deal.userId, {
-                    type: 'comment',
-                    fromUserId: userId,
-                    dealId,
-                    commentId: docRef.id,
-                    text: 'commented on your deal',
-                    read: false
-                });
-            }
-            
-            return docRef.id;
+            return { success: true, commentId: docRef.id };
         } catch (error) {
             console.error('Error adding comment:', error);
-            return null;
+            return { success: false, error: error.message };
         }
     }
 
-    // Get comments for a deal
-    async getComments(dealId, limitCount = 50) {
+    async getComments(dealId) {
         try {
-            const commentsRef = this.db.collection('comments');
-            const q = commentsRef
-                .where('dealId', '==', dealId)
-                .orderBy('createdAt', 'desc')
-                .limit(limitCount);
-            const querySnapshot = await q.get();
+            const q = query(
+                collection(this.db, 'comments'),
+                where('dealId', '==', dealId),
+                orderBy('createdAt', 'desc'),
+                limit(50)
+            );
+            const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting comments:', error);
@@ -355,214 +191,68 @@ class FirebaseService {
         }
     }
 
-    // ========== FOLLOWS ==========
-
-    // Follow/Unfollow user (Twitter/LinkedIn style)
-    async toggleFollow(targetUserId, currentUserId) {
+    // ========== SAVED DEALS ==========
+    
+    async toggleSave(dealId, userId) {
         try {
-            const followRef = this.db.collection('follows').doc(`${currentUserId}_${targetUserId}`);
-            const followSnap = await followRef.get();
+            const userRef = doc(this.db, 'users', userId);
+            const userSnap = await getDoc(userRef);
             
-            if (followSnap.exists) {
-                // Unfollow
-                await followRef.delete();
-                await this.incrementUserStat(targetUserId, 'followersCount', -1);
-                await this.incrementUserStat(currentUserId, 'followingCount', -1);
-                return false; // unfollowed
+            if (!userSnap.exists()) return { success: false, error: 'User not found' };
+            
+            const savedDeals = userSnap.data().savedDeals || [];
+            
+            if (savedDeals.includes(dealId)) {
+                await updateDoc(userRef, {
+                    savedDeals: arrayRemove(dealId)
+                });
+                return { success: true, saved: false };
             } else {
-                // Follow
-                await followRef.set({
-                    followerId: currentUserId,
-                    followingId: targetUserId,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                await updateDoc(userRef, {
+                    savedDeals: arrayUnion(dealId)
                 });
-                await this.incrementUserStat(targetUserId, 'followersCount', 1);
-                await this.incrementUserStat(currentUserId, 'followingCount', 1);
-                
-                // Notify followed user
-                await this.addNotification(targetUserId, {
-                    type: 'follow',
-                    fromUserId: currentUserId,
-                    text: 'started following you',
-                    read: false
-                });
-                
-                return true; // followed
+                return { success: true, saved: true };
             }
         } catch (error) {
-            console.error('Error toggling follow:', error);
-            return null;
-        }
-    }
-
-    // Get followers
-    async getFollowers(userId, limitCount = 50) {
-        try {
-            const followsRef = this.db.collection('follows');
-            const q = followsRef
-                .where('followingId', '==', userId)
-                .limit(limitCount);
-            const querySnapshot = await q.get();
-            const followerIds = querySnapshot.docs.map(doc => doc.data().followerId);
-            
-            // Get user profiles
-            const userPromises = followerIds.map(id => this.getUserProfile(id));
-            return (await Promise.all(userPromises)).filter(u => u !== null);
-        } catch (error) {
-            console.error('Error getting followers:', error);
-            return [];
-        }
-    }
-
-    // Get following
-    async getFollowing(userId, limitCount = 50) {
-        try {
-            const followsRef = this.db.collection('follows');
-            const q = followsRef
-                .where('followerId', '==', userId)
-                .limit(limitCount);
-            const querySnapshot = await q.get();
-            const followingIds = querySnapshot.docs.map(doc => doc.data().followingId);
-            
-            // Get user profiles
-            const userPromises = followingIds.map(id => this.getUserProfile(id));
-            return (await Promise.all(userPromises)).filter(u => u !== null);
-        } catch (error) {
-            console.error('Error getting following:', error);
-            return [];
+            console.error('Error toggling save:', error);
+            return { success: false, error: error.message };
         }
     }
 
     // ========== NOTIFICATIONS ==========
     
-    // Add notification
     async addNotification(userId, notification) {
         try {
-            const notifRef = this.db.collection('notifications').doc();
-            await notifRef.set({
+            const docRef = doc(collection(this.db, 'notifications'));
+            await setDoc(docRef, {
+                id: docRef.id,
                 userId,
                 ...notification,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: serverTimestamp(),
                 read: false
             });
-            return notifRef.id;
+            return { success: true };
         } catch (error) {
             console.error('Error adding notification:', error);
-            return null;
+            return { success: false, error: error.message };
         }
     }
-    
-    // Get notifications for user
-    async getNotifications(userId, limitCount = 20) {
+
+    async getNotifications(userId) {
         try {
-            const notifRef = this.db.collection('notifications');
-            const q = notifRef
-                .where('userId', '==', userId)
-                .orderBy('createdAt', 'desc')
-                .limit(limitCount);
-            const querySnapshot = await q.get();
+            const q = query(
+                collection(this.db, 'notifications'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(20)
+            );
+            const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error getting notifications:', error);
             return [];
         }
     }
-    
-    // Real-time listener for notifications
-    subscribeToNotifications(userId, callback) {
-        const notifRef = this.db.collection('notifications');
-        const q = notifRef
-            .where('userId', '==', userId)
-            .where('read', '==', false)
-            .orderBy('createdAt', 'desc')
-            .limit(20);
-        
-        const unsubscribe = q.onSnapshot((snapshot) => {
-            const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            callback(notifications);
-        }, (error) => {
-            console.error('Notification listener error:', error);
-        });
-        
-        this.listeners.push(unsubscribe);
-        return unsubscribe;
-    }
-    
-    // Mark notification as read
-    async markNotificationRead(notificationId) {
-        try {
-            const notifRef = this.db.collection('notifications').doc(notificationId);
-            await notifRef.update({ read: true });
-        } catch (error) {
-            console.error('Error marking notification read:', error);
-        }
-    }
-
-    // ========== ANALYTICS ==========
-
-    // Get user stats for dashboard (LinkedIn-style analytics)
-    async getUserAnalytics(userId) {
-        try {
-            const deals = await this.getUserDeals(userId, 100);
-            const likes = await this.getLikedDeals(userId, 100);
-            const saved = await this.getSavedDeals(userId, 100);
-            
-            // Calculate analytics
-            const totalLikes = deals.reduce((sum, deal) => sum + (deal.likesCount || 0), 0);
-            const totalComments = deals.reduce((sum, deal) => sum + (deal.commentsCount || 0), 0);
-            const totalShares = deals.reduce((sum, deal) => sum + (deal.sharesCount || 0), 0);
-            const totalViews = deals.reduce((sum, deal) => sum + (deal.viewsCount || 0), 0);
-            const totalSavings = deals.reduce((sum, deal) => {
-                return sum + ((deal.homePrice - deal.price) || 0);
-            }, 0);
-            
-            return {
-                dealsCount: deals.length,
-                totalLikes,
-                totalComments,
-                totalShares,
-                totalViews,
-                totalSavings,
-                likedDeals: likes.length,
-                savedDeals: saved.length,
-                avgBuzzScore: deals.length > 0 
-                    ? deals.reduce((sum, d) => sum + (d.buzzScore || 0), 0) / deals.length 
-                    : 0
-            };
-        } catch (error) {
-            console.error('Error getting analytics:', error);
-            return null;
-        }
-    }
-
-    // ========== HELPER METHODS ==========
-
-    async incrementUserStat(userId, stat, amount) {
-        try {
-            const userRef = this.db.collection('users').doc(userId);
-            await userRef.update({
-                [stat]: firebase.firestore.FieldValue.increment(amount)
-            });
-        } catch (error) {
-            console.error('Error incrementing user stat:', error);
-        }
-    }
-
-    async incrementDealStat(dealId, stat, amount) {
-        try {
-            const dealRef = this.db.collection('deals').doc(dealId);
-            await dealRef.update({
-                [stat]: firebase.firestore.FieldValue.increment(amount)
-            });
-        } catch (error) {
-            console.error('Error incrementing deal stat:', error);
-        }
-    }
 }
 
-// Export singleton instance
-const firebaseService = new FirebaseService();
-export default firebaseService;
-
-// Make available globally for non-module scripts
-window.firebaseService = firebaseService;
+export default new FirebaseService();
