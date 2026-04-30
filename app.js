@@ -927,7 +927,6 @@ function renderFeed() {
         const savings = item.homePrice - item.price;
         const savingsPct = ((savings / item.homePrice) * 100).toFixed(0);
         
-<<<<<<< HEAD
         const card = document.createElement('div'); 
         card.className = 'hybrid-card';
         card.dataset.dealId = item.id;
