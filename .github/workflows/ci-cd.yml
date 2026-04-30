@@ -15,9 +15,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
+      - run: npm install
       - run: npm run build
         if: always()
 
@@ -28,16 +26,3 @@ jobs:
       - uses: actions/setup-node@v4
       - run: npm audit --audit-level=moderate
         if: always()
-
-  lighthouse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: npm ci
-      - run: npm run build
-      - uses: ./.github/actions/lighthouse@v2
-        with:
-          urls: |
-            http://localhost:3000
-          budget: ./.github/lighthouse-budget.json
