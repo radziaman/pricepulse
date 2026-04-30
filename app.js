@@ -13,10 +13,11 @@ import {
     ActivityModal 
 } from './js/components/index.js';
 
-// Import Firebase services
+// Import Firebase services (ES modules from CDN)
 import { 
     auth, 
     db, 
+    onAuthState,
     loginWithGoogle, 
     loginWithApple, 
     loginWithEmail, 
@@ -25,6 +26,11 @@ import {
 } from './firebase-config.js';
 
 import firebaseService from './firebase-service.js';
+
+// Import diagnostics in development
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    import('./diagnostics.js');
+}
 
 // App state
 const state = {
@@ -56,8 +62,11 @@ class PricePulseApp {
     setup() {
         console.log('✅ PricePulse initializing...');
         
+        // Initialize Firebase from CDN
+        initFirebase();
+        
         // Initialize Firebase listener
-        auth.onAuthStateChanged((user) => this.handleAuthState(user));
+        onAuthStateChanged((user) => this.handleAuthState(user));
         
         // Load initial data
         this.loadInitialData();

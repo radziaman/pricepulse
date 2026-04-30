@@ -1,5 +1,5 @@
 // ==========================================
-// FIREBASE CONFIGURATION - Proper ES Module
+// FIREBASE CONFIGURATION - CDN Version for Modules
 // ==========================================
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
@@ -36,11 +36,12 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+console.log('✅ Firebase initialized via ES modules');
+
 // Auth state handler
 let authStateCallback = null;
 
 export function onAuthState(handler) {
-    authStateCallback = handler;
     onAuthStateChanged(auth, (user) => {
         if (handler) handler(user);
     });
@@ -70,16 +71,14 @@ export async function loginWithApple() {
     }
 }
 
-// Email/Password Login or Register
+// Email/Password Login
 export async function loginWithEmail(email, password) {
     try {
-        // Try sign in first
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
             return { success: true, user: result.user };
         } catch (signInError) {
             if (signInError.code === 'auth/user-not-found') {
-                // Create new account
                 const result = await createUserWithEmailAndPassword(auth, email, password);
                 await sendEmailVerification(result.user);
                 return { success: true, user: result.user, needsVerification: true };
@@ -116,5 +115,3 @@ export async function saveUserProfile(userId, userData) {
         return { success: false, error: error.message };
     }
 }
-
-console.log('✅ Firebase module loaded');
